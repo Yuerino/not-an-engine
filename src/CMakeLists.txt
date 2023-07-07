@@ -1,0 +1,27 @@
+set(SOURCE_FILES
+    main.cpp)
+
+find_package(glfw3 3.3 CONFIG QUIET)
+if (NOT glfw3_FOUND)
+    set(GLFW_BUILD_DOCS OFF CACHE BOOL "GLFW Lib only")
+    set(GLFW_BUILD_TESTS OFF CACHE BOOL "GLFW Lib only")
+    set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "GLFW Lib only")
+    set(GLFW_BUILD_TESTS OFF CACHE BOOL "GLFW Lib only")
+    set(GLFW_INSTALL OFF CACHE BOOL "GLFW Lib only")
+    add_subdirectory(${CMAKE_SOURCE_DIR}/dependency/glfw glfw)
+    set_target_properties(glfw PROPERTIES FOLDER "dependency")
+endif ()
+
+add_executable(not_an_engine ${SOURCE_FILES})
+
+target_compile_definitions(not_an_engine
+    PUBLIC
+    GLFW_INCLUDE_VULKAN
+    GLM_FORCE_RADIANS
+    GLM_FORCE_DEPTH_ZERO_TO_ONE)
+
+target_link_libraries(not_an_engine
+    PUBLIC
+    Vulkan::Vulkan
+    PRIVATE
+    glfw)
