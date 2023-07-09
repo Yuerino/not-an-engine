@@ -2,6 +2,7 @@
 
 #include <GLFW/glfw3.h>
 
+#include <stdexcept>
 #include <string>
 
 namespace nae {
@@ -15,10 +16,10 @@ namespace nae {
         Window(Window &&) = delete;
         Window &operator=(Window &&) = delete;
 
-        [[nodiscard]] bool shouldClose() const;
+        [[nodiscard]] bool shouldClose() const noexcept;
 
     private:
-        GLFWwindow *window_;
+        GLFWwindow *glfwWindow_;
         std::string title_;
         const int width_;
         const int height_;
