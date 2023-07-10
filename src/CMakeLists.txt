@@ -23,7 +23,6 @@ target_compile_options(not-an-engine PRIVATE
 
 target_compile_definitions(not-an-engine
     PUBLIC
-    GLFW_INCLUDE_VULKAN
     GLM_FORCE_RADIANS
     GLM_FORCE_DEPTH_ZERO_TO_ONE)
 

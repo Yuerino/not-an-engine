@@ -2,6 +2,9 @@
 
 #include <memory>
 
+#include <vulkan/vulkan.hpp>
+#include <vulkan/vulkan_raii.hpp>
+
 #include "GlfwApi.hpp"
 #include "Window.hpp"
 
@@ -24,6 +27,8 @@ public:
 
 private:
     GlfwApi glfwApi_;
+    vk::raii::Context vkContext_;
+    std::unique_ptr<vk::raii::Instance> vkInstance_;
     std::unique_ptr<Window> window_;
 };
 
