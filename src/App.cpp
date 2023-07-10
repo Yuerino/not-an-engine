@@ -4,10 +4,16 @@
 
 namespace nae {
 
-App::App() : window_{WIDTH, HEIGHT, TITLE} {}
+App::App() : glfwApi_{} {
+    if (glfwVulkanSupported() == GLFW_FALSE) {
+        throw GlfwException{-1, "Vulkan is not supported"};
+    }
+
+    window_ = std::make_unique<Window>(WIDTH, HEIGHT, TITLE);
+}
 
 void App::run() {
-    while (!window_.shouldClose()) {
+    while (!window_->shouldClose()) {
         glfwPollEvents();
     }
 }

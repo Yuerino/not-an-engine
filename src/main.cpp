@@ -6,13 +6,12 @@
 #include "App.hpp"
 
 int main() {
-    glfwSetErrorCallback([](int error, const char *description) {
-        std::cerr << "GLFW error " << error << ": " << description << std::endl;
-    });
-
     try {
         nae::App app{};
         app.run();
+    } catch (const nae::GlfwException &ex) {
+        std::cerr << "GLFW Error code: " << ex.getErrorCode() << ", description: " << ex.what() << std::endl;
+        return EXIT_FAILURE;
     } catch (const std::exception &ex) {
         std::cerr << ex.what() << std::endl;
         return EXIT_FAILURE;

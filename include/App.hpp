@@ -1,5 +1,8 @@
 #pragma once
 
+#include <memory>
+
+#include "GlfwApi.hpp"
 #include "Window.hpp"
 
 namespace nae {
@@ -20,7 +23,8 @@ public:
     void run();
 
 private:
-    Window window_;
+    GlfwApi glfwApi_;
+    std::unique_ptr<Window> window_;
 };
 
 } // namespace nae
