@@ -1,11 +1,15 @@
 #include "App.hpp"
 
-namespace nae {
-    App::App() : window_{WIDTH, HEIGHT, TITLE} {}
+#include <GLFW/glfw3.h>
 
-    void App::run() {
-        while (!window_.shouldClose()) {
-            glfwPollEvents();
-        }
+namespace nae {
+
+App::App() : window_{WIDTH, HEIGHT, TITLE} {}
+
+void App::run() {
+    while (!window_.shouldClose()) {
+        glfwPollEvents();
     }
-}// namespace nae
+}
+
+} // namespace nae

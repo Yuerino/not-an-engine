@@ -1,7 +1,9 @@
-#include "App.hpp"
-
 #include <iostream>
 #include <stdexcept>
+
+#include <GLFW/glfw3.h>
+
+#include "App.hpp"
 
 int main() {
     glfwSetErrorCallback([](int error, const char *description) {

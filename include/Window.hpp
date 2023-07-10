@@ -1,27 +1,28 @@
 #pragma once
 
-#include <GLFW/glfw3.h>
-
-#include <stdexcept>
 #include <string>
 
+#include <GLFW/glfw3.h>
+
 namespace nae {
-    class Window {
-    public:
-        Window(int width, int height, std::string title);
-        ~Window();
 
-        Window(const Window &) = delete;
-        Window &operator=(const Window &) = delete;
-        Window(Window &&) = delete;
-        Window &operator=(Window &&) = delete;
+class Window {
+public:
+    Window(int width, int height, std::string title);
+    ~Window();
 
-        [[nodiscard]] bool shouldClose() const noexcept;
+    Window(const Window &) = delete;
+    Window &operator=(const Window &) = delete;
+    Window(Window &&) = delete;
+    Window &operator=(Window &&) = delete;
 
-    private:
-        GLFWwindow *glfwWindow_;
-        std::string title_;
-        const int width_;
-        const int height_;
-    };
-}// namespace nae
+    [[nodiscard]] bool shouldClose() const noexcept;
+
+private:
+    GLFWwindow *glfwWindow_;
+    std::string title_;
+    const int width_;
+    const int height_;
+};
+
+} // namespace nae
