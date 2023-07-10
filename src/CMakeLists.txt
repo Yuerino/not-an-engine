@@ -16,6 +16,10 @@ endif ()
 
 add_executable(not_an_engine ${SOURCE_FILES})
 
+target_compile_options(not_an_engine PRIVATE
+    $<$<CXX_COMPILER_ID:MSVC>:/W4 /WX>
+    $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-Wall -Wextra -Wpedantic -Werror>)
+
 target_compile_definitions(not_an_engine
     PUBLIC
     GLFW_INCLUDE_VULKAN
@@ -24,8 +28,7 @@ target_compile_definitions(not_an_engine
 
 target_include_directories(not_an_engine
     PUBLIC
-    ${PROJECT_SOURCE_DIR}/include
-)
+    ${PROJECT_SOURCE_DIR}/include)
 
 target_link_libraries(not_an_engine
     PUBLIC

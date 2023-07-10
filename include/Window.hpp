@@ -20,9 +20,9 @@ public:
 
 private:
     GLFWwindow *glfwWindow_;
-    std::string title_;
     const int width_;
     const int height_;
+    std::string title_;
 };
 
 } // namespace nae
