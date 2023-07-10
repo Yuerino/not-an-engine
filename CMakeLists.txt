@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.25)
-project(not_an_engine)
+project(not-an-engine)
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 

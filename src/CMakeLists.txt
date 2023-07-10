@@ -14,23 +14,23 @@ if (NOT glfw3_FOUND)
     set_target_properties(glfw PROPERTIES FOLDER "dependency")
 endif ()
 
-add_executable(not_an_engine ${SOURCE_FILES})
+add_executable(not-an-engine ${SOURCE_FILES})
 
-target_compile_options(not_an_engine PRIVATE
+target_compile_options(not-an-engine PRIVATE
     $<$<CXX_COMPILER_ID:MSVC>:/W4 /WX>
     $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-Wall -Wextra -Wpedantic -Werror>)
 
-target_compile_definitions(not_an_engine
+target_compile_definitions(not-an-engine
     PUBLIC
     GLFW_INCLUDE_VULKAN
     GLM_FORCE_RADIANS
     GLM_FORCE_DEPTH_ZERO_TO_ONE)
 
-target_include_directories(not_an_engine
+target_include_directories(not-an-engine
     PUBLIC
     ${PROJECT_SOURCE_DIR}/include)
 
-target_link_libraries(not_an_engine
+target_link_libraries(not-an-engine
     PUBLIC
     Vulkan::Vulkan
     PRIVATE
