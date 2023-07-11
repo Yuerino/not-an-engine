@@ -46,8 +46,10 @@ std::vector<const char *> gatherLayers(const std::vector<std::string> &layers
 /*!
  * @brief Return list of enabled extensions for Vulkan.
  *
- * In debug mode, this function will also validate that all extensions are available on the system and add the debug
- * utils messenger extension if it is not present.
+ * The list contains all extensions required by GLFW for Vulkan.
+ *
+ * In debug mode, this function will also validate that all the required extensions are available on the system and add
+ * the debug utils messenger extension if it is not present.
  */
 std::vector<const char *> gatherExtensions(
 #ifndef NDEBUG
@@ -102,6 +104,7 @@ debugUtilsMessengerCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeveri
 }
 
 ::vk::DebugUtilsMessengerCreateInfoEXT makeDebugUtilsMessengerCreateInfoEXT() {
+    // TODO: add a marco toggle for verbose messenger
     ::vk::DebugUtilsMessageSeverityFlagsEXT severityFlags(::vk::DebugUtilsMessageSeverityFlagBitsEXT::eVerbose |
                                                           ::vk::DebugUtilsMessageSeverityFlagBitsEXT::eWarning |
                                                           ::vk::DebugUtilsMessageSeverityFlagBitsEXT::eError);
@@ -139,6 +142,29 @@ debugUtilsMessengerCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeveri
 #endif
 
     return ::vk::raii::Instance{vkContext, instanceCreateInfoChain.get<::vk::InstanceCreateInfo>()};
+}
+
+uint32_t findQueueFamilyIndex(const std::vector<::vk::QueueFamilyProperties> &queueFamilyProperties,
+                              ::vk::QueueFlagBits queueFlagBits) {
+    auto queueFamilyPropertyIt = std::find_if(queueFamilyProperties.begin(),
+                                              queueFamilyProperties.end(),
+                                              [&queueFlagBits](const ::vk::QueueFamilyProperties &queueFamilyProperty) {
+                                                  return queueFamilyProperty.queueFlags & queueFlagBits;
+                                              });
+    assert(queueFamilyPropertyIt != queueFamilyProperties.end());
+    return static_cast<uint32_t>(std::distance(queueFamilyProperties.begin(), queueFamilyPropertyIt));
+}
+
+::vk::raii::Device createDevice(::vk::raii::PhysicalDevice &physicalDevice) {
+    float queuePriority = 1.0f;
+    ::vk::DeviceQueueCreateInfo deviceQueueCreateInfos{
+            {},
+            findQueueFamilyIndex(physicalDevice.getQueueFamilyProperties(), ::vk::QueueFlagBits::eGraphics),
+            1,
+            &queuePriority};
+    ::vk::DeviceCreateInfo deviceCreateInfo{{}, deviceQueueCreateInfos};
+
+    return ::vk::raii::Device{physicalDevice, deviceCreateInfo};
 }
 
 } // namespace nae::util::vk

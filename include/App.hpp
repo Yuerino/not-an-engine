@@ -1,11 +1,7 @@
 #ifndef NOT_AN_ENGINE_APP_HPP
 #define NOT_AN_ENGINE_APP_HPP
 
-#include <memory>
-
-#include <vulkan/vulkan.hpp>
-#include <vulkan/vulkan_raii.hpp>
-
+#include "Device.hpp"
 #include "GlfwApi.hpp"
 #include "Window.hpp"
 
@@ -18,6 +14,7 @@ public:
     static constexpr const char *TITLE = "Vulkan window";
 
     App();
+    ~App() = default;
 
     App(const App &) = delete;
     App &operator=(const App &) = delete;
@@ -28,13 +25,8 @@ public:
 
 private:
     GlfwApi glfwApi_;
-    vk::raii::Context vkContext_;
-    std::unique_ptr<vk::raii::Instance> vkInstancePtr_;
-    std::unique_ptr<Window> windowPtr_;
-
-#ifndef NDEBUG
-    std::unique_ptr<vk::raii::DebugUtilsMessengerEXT> vkDebugUtilsMessengerPtr_;
-#endif
+    Window window_;
+    Device device_;
 };
 
 } // namespace nae

@@ -20,6 +20,8 @@ namespace nae::util::vk {
                                     const std::vector<std::string> &extensions = {},
                                     uint32_t apiVersion = VK_API_VERSION_1_3);
 
+::vk::raii::Device createDevice(::vk::raii::PhysicalDevice &physicalDevice);
+
 } // namespace nae::util::vk
 
 #endif // NOT_AN_ENGINE_VULKAN_HPP
