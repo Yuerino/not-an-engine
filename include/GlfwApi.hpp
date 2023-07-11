@@ -1,5 +1,5 @@
-#ifndef NAE_GLFW_API_HPP
-#define NAE_GLFW_API_HPP
+#ifndef NOT_AN_ENGINE_GLFW_API_HPP
+#define NOT_AN_ENGINE_GLFW_API_HPP
 
 #include <string>
 
@@ -46,4 +46,4 @@ private:
 
 } // namespace nae
 
-#endif // NAE_GLFW_API_HPP
+#endif // NOT_AN_ENGINE_GLFW_API_HPP

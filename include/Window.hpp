@@ -1,5 +1,5 @@
-#ifndef NAE_WINDOW_HPP
-#define NAE_WINDOW_HPP
+#ifndef NOT_AN_ENGINE_WINDOW_HPP
+#define NOT_AN_ENGINE_WINDOW_HPP
 
 #include <string>
 
@@ -28,4 +28,4 @@ private:
 
 } // namespace nae
 
-#endif // NAE_WINDOW_HPP
+#endif // NOT_AN_ENGINE_WINDOW_HPP

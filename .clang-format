@@ -4,8 +4,9 @@ AccessModifierOffset: -4
 AlignAfterOpenBracket: Align
 AlignConsecutiveAssignments: None
 AlignOperands: Align
-AllowAllArgumentsOnNextLine: false
 BinPackArguments: false
+BinPackParameters: false
+AllowAllArgumentsOnNextLine: false
 PackConstructorInitializers: NextLine
 AllowAllParametersOfDeclarationOnNextLine: false
 AllowShortBlocksOnASingleLine: Always

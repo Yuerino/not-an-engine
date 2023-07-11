@@ -1,5 +1,5 @@
-#ifndef NAE_APP_HPP
-#define NAE_APP_HPP
+#ifndef NOT_AN_ENGINE_APP_HPP
+#define NOT_AN_ENGINE_APP_HPP
 
 #include <memory>
 
@@ -29,10 +29,14 @@ public:
 private:
     GlfwApi glfwApi_;
     vk::raii::Context vkContext_;
-    std::unique_ptr<vk::raii::Instance> vkInstance_;
-    std::unique_ptr<Window> window_;
+    std::unique_ptr<vk::raii::Instance> vkInstancePtr_;
+    std::unique_ptr<Window> windowPtr_;
+
+#ifndef NDEBUG
+    std::unique_ptr<vk::raii::DebugUtilsMessengerEXT> vkDebugUtilsMessengerPtr_;
+#endif
 };
 
 } // namespace nae
 
-#endif // NAE_APP_HPP
+#endif // NOT_AN_ENGINE_APP_HPP
