@@ -1,4 +1,5 @@
-#pragma once
+#ifndef NAE_APP_HPP
+#define NAE_APP_HPP
 
 #include <memory>
 
@@ -33,3 +34,5 @@ private:
 };
 
 } // namespace nae
+
+#endif // NAE_APP_HPP

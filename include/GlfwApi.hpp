@@ -1,4 +1,5 @@
-#pragma once
+#ifndef NAE_GLFW_API_HPP
+#define NAE_GLFW_API_HPP
 
 #include <string>
 
@@ -44,3 +45,5 @@ private:
 };
 
 } // namespace nae
+
+#endif // NAE_GLFW_API_HPP

@@ -1,4 +1,5 @@
-#pragma once
+#ifndef NAE_WINDOW_HPP
+#define NAE_WINDOW_HPP
 
 #include <string>
 
@@ -26,3 +27,5 @@ private:
 };
 
 } // namespace nae
+
+#endif // NAE_WINDOW_HPP
