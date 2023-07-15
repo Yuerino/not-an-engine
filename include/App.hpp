@@ -1,8 +1,8 @@
 #ifndef NOT_AN_ENGINE_APP_HPP
 #define NOT_AN_ENGINE_APP_HPP
 
-#include "Device.hpp"
 #include "GlfwApi.hpp"
+#include "Graphic.hpp"
 #include "Window.hpp"
 
 namespace nae {
@@ -26,7 +26,7 @@ public:
 private:
     GlfwApi glfwApi_;
     Window window_;
-    Device device_;
+    Graphic graphic_;
 };
 
 } // namespace nae

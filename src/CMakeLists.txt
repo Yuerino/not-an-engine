@@ -1,10 +1,12 @@
 set(SOURCE_FILES
     main.cpp
-    Window.cpp
     App.cpp
     GlfwApi.cpp
-    util/vulkan.cpp
-    Device.cpp)
+    Window.cpp
+    Graphic.cpp
+    graphic/Instance.cpp
+    graphic/PhysicalDevice.cpp
+    graphic/Device.cpp)
 
 find_package(glfw3 3.3 CONFIG QUIET)
 if (NOT glfw3_FOUND)
