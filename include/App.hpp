@@ -2,8 +2,8 @@
 #define NOT_AN_ENGINE_APP_HPP
 
 #include "GlfwApi.hpp"
-#include "Graphic.hpp"
 #include "Window.hpp"
+#include "graphic/Graphic.hpp"
 
 namespace nae {
 

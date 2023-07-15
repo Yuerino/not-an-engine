@@ -1,5 +1,5 @@
-#ifndef NOT_AN_ENGINE_GRAPHIC_HPP
-#define NOT_AN_ENGINE_GRAPHIC_HPP
+#ifndef NOT_AN_ENGINE_GRAPHIC_GRAPHIC_HPP
+#define NOT_AN_ENGINE_GRAPHIC_GRAPHIC_HPP
 
 #include <memory>
 
@@ -30,4 +30,4 @@ private:
 
 } // namespace nae
 
-#endif // NOT_AN_ENGINE_GRAPHIC_HPP
+#endif // NOT_AN_ENGINE_GRAPHIC_GRAPHIC_HPP

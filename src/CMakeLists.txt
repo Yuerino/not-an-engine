@@ -3,7 +3,7 @@ set(SOURCE_FILES
     App.cpp
     GlfwApi.cpp
     Window.cpp
-    Graphic.cpp
+    graphic/Graphic.cpp
     graphic/Instance.cpp
     graphic/PhysicalDevice.cpp
     graphic/Device.cpp)

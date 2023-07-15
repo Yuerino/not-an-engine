@@ -1,4 +1,4 @@
-#include "Graphic.hpp"
+#include "graphic/Graphic.hpp"
 
 #include "graphic/Device.hpp"
 #include "graphic/Instance.hpp"
