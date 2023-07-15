@@ -5,6 +5,8 @@
 
 #include <GLFW/glfw3.h>
 
+#include "GlfwApi.hpp"
+
 namespace nae::graphic {
 
 namespace {
@@ -61,7 +63,8 @@ namespace {
     std::vector<const char *> gatherExtensions(const std::vector<vk::ExtensionProperties> &extensionProperties) {
 #endif
         uint32_t glfwExtensionCount = 0;
-        const char **glfwExtensionName = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
+        const char **glfwExtensionName =
+                glfwWrapper([&glfwExtensionCount]() { return glfwGetRequiredInstanceExtensions(&glfwExtensionCount); });
 
         std::vector<const char *> enabledExt;
         enabledExt.reserve(glfwExtensionCount);

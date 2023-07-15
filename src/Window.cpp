@@ -14,7 +14,7 @@ Window::Window(int width, int height, std::string title) : width_{width}, height
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
     glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
 
-    glfwWindow_ = glfwCreateWindow(width_, height_, title_.c_str(), nullptr, nullptr);
+    glfwWindow_ = glfwWrapper([&]() { return glfwCreateWindow(width_, height_, title_.c_str(), nullptr, nullptr); });
     assert(glfwWindow_ != nullptr);
 }
 
@@ -23,7 +23,8 @@ Window::~Window() {
 }
 
 bool Window::shouldClose() const noexcept {
-    return glfwWindowShouldClose(glfwWindow_);
+    return static_cast<bool>(
+            glfwWrapper([&glfwWindow_ = glfwWindow_]() { return glfwWindowShouldClose(glfwWindow_); }));
 }
 
 } // namespace nae

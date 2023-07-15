@@ -3,19 +3,11 @@
 namespace nae {
 
 GlfwApi::GlfwApi() {
-    glfwSetErrorCallback(errorCallback);
-    glfwInit();
+    glfwWrapper([]() { glfwInit(); });
 }
 
 GlfwApi::~GlfwApi() {
     glfwTerminate();
-}
-
-// TODO: when throwing in C callback, exception handler/unwind tables might not exist (system dependant). This might
-//  lead to UB unless we built GLFW with same toolchain and statically link it and depends on compiler, we might have
-//  to enable some options for this. All in all, this is a nightmare.
-void GlfwApi::errorCallback(int error, const char *description) {
-    throw GlfwException{error, description};
 }
 
 GlfwException::GlfwException(int error, std::string description) noexcept
