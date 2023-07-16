@@ -1,7 +1,6 @@
 #include <iostream>
 #include <stdexcept>
 
-#include <GLFW/glfw3.h>
 #include <vulkan/vulkan.hpp>
 
 #include "App.hpp"

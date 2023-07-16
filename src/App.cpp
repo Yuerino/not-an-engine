@@ -2,7 +2,7 @@
 
 namespace nae {
 
-App::App() : glfwApi_{}, window_{WIDTH, HEIGHT, TITLE}, graphic_{} {}
+App::App() : glfwApi_{}, window_{WINDOW_EXTENT, TITLE}, graphic_{window_} {}
 
 void App::run() {
     while (!window_.shouldClose()) {

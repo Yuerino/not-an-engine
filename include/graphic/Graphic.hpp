@@ -3,13 +3,17 @@
 
 #include <memory>
 
-#include "vulkan/vulkan_raii.hpp"
+#include <GLFW/glfw3.h>
+#include <vulkan/vulkan_raii.hpp>
+
+#include "Window.hpp"
+#include "graphic/SwapChainData.hpp"
 
 namespace nae {
 
 class Graphic {
 public:
-    Graphic();
+    explicit Graphic(const Window &window);
     ~Graphic() = default;
 
     Graphic(const Graphic &) = delete;
@@ -21,7 +25,15 @@ private:
     vk::raii::Context vkContext_;
     vk::raii::Instance vkInstance_;
     std::unique_ptr<vk::raii::PhysicalDevice> vkPhysicalDevicePtr_;
+    std::unique_ptr<vk::raii::SurfaceKHR> vkSurfacePtr_;
     std::unique_ptr<vk::raii::Device> vkDevicePtr_;
+    std::unique_ptr<vk::raii::CommandPool> vkCommandPoolPtr_;
+    std::unique_ptr<vk::raii::Queue> vkGraphicQueuePtr_;
+    std::unique_ptr<vk::raii::Queue> vkPresentQueuePtr_;
+    std::unique_ptr<graphic::SwapChainData> SwapChainDataPtr_;
+
+    uint32_t graphicQueueFamilyIndex_;
+    uint32_t presentQueueFamilyIndex_;
 
 #if !defined(NDEBUG)
     vk::raii::DebugUtilsMessengerEXT vkDebugUtilsMessenger_;

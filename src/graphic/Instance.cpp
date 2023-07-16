@@ -120,7 +120,7 @@ vk::DebugUtilsMessengerCreateInfoEXT makeDebugUtilsMessengerCreateInfoEXT() {
     vk::DebugUtilsMessageTypeFlagsEXT messageTypeFlags(vk::DebugUtilsMessageTypeFlagBitsEXT::eGeneral |
                                                        vk::DebugUtilsMessageTypeFlagBitsEXT::ePerformance |
                                                        vk::DebugUtilsMessageTypeFlagBitsEXT::eValidation);
-    return {{}, severityFlags, messageTypeFlags, &debugUtilsMessengerCallback};
+    return {vk::DebugUtilsMessengerCreateFlagsEXT{}, severityFlags, messageTypeFlags, &debugUtilsMessengerCallback};
 }
 
 vk::raii::Instance createInstance(vk::raii::Context &vkContext,
@@ -138,13 +138,13 @@ vk::raii::Instance createInstance(vk::raii::Context &vkContext,
     std::vector<const char *> enabledExtensions = gatherExtensions();
 
     vk::StructureChain<vk::InstanceCreateInfo> instanceCreateInfoChain{
-            {{}, &appInfo, enabledLayers, enabledExtensions}};
+            {vk::InstanceCreateFlags{}, &appInfo, enabledLayers, enabledExtensions}};
 #else
     std::vector<const char *> enabledLayers = gatherLayers(layers, vkContext.enumerateInstanceLayerProperties());
     std::vector<const char *> enabledExtensions = gatherExtensions(vkContext.enumerateInstanceExtensionProperties());
 
     vk::StructureChain<vk::InstanceCreateInfo, vk::DebugUtilsMessengerCreateInfoEXT> instanceCreateInfoChain{
-            {{}, &appInfo, enabledLayers, enabledExtensions},
+            {vk::InstanceCreateFlags{}, &appInfo, enabledLayers, enabledExtensions},
             makeDebugUtilsMessengerCreateInfoEXT()};
 #endif
 

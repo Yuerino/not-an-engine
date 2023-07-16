@@ -6,7 +6,7 @@
 
 namespace nae {
 
-Window::Window(int width, int height, std::string title) : width_{width}, height_{height}, title_{std::move(title)} {
+Window::Window(vk::Extent2D extent, std::string title) : extent_{extent}, title_{std::move(title)} {
     if (glfwVulkanSupported() == GLFW_FALSE) {
         throw GlfwException{-1, "Vulkan is not supported"};
     }
@@ -14,7 +14,13 @@ Window::Window(int width, int height, std::string title) : width_{width}, height
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
     glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
 
-    glfwWindow_ = glfwWrapper([&]() { return glfwCreateWindow(width_, height_, title_.c_str(), nullptr, nullptr); });
+    glfwWindow_ = glfwWrapper([&]() {
+        return glfwCreateWindow(static_cast<int>(extent_.width),
+                                static_cast<int>(extent_.height),
+                                title_.c_str(),
+                                nullptr,
+                                nullptr);
+    });
     assert(glfwWindow_ != nullptr);
 }
 

@@ -4,12 +4,15 @@
 #include <string>
 
 #include <GLFW/glfw3.h>
+#include <vulkan/vulkan.hpp>
 
 namespace nae {
 
 class Window {
+    friend class Graphic;
+
 public:
-    Window(int width, int height, std::string title);
+    Window(vk::Extent2D extent, std::string title);
     ~Window();
 
     Window(const Window &) = delete;
@@ -21,8 +24,7 @@ public:
 
 private:
     GLFWwindow *glfwWindow_;
-    const int width_;
-    const int height_;
+    vk::Extent2D extent_;
     std::string title_;
 };
 

@@ -35,6 +35,8 @@ BreakBeforeBinaryOperators: None
 BreakBeforeTernaryOperators: true
 BreakConstructorInitializers: BeforeColon
 BreakInheritanceList: BeforeColon
+PenaltyBreakAssignment: 50
+PenaltyBreakBeforeFirstCallParameter: 0
 ColumnLimit: 120
 CompactNamespaces: false
 ContinuationIndentWidth: 8

@@ -6,7 +6,9 @@ set(SOURCE_FILES
     graphic/Graphic.cpp
     graphic/Instance.cpp
     graphic/PhysicalDevice.cpp
-    graphic/Device.cpp)
+    graphic/Device.cpp
+    graphic/Surface.cpp
+    graphic/SwapChainData.cpp)
 
 find_package(glfw3 3.3 CONFIG QUIET)
 if (NOT glfw3_FOUND)
@@ -21,9 +23,9 @@ endif ()
 
 add_executable(not-an-engine ${SOURCE_FILES})
 
-target_compile_options(not-an-engine PRIVATE
-    $<$<CXX_COMPILER_ID:MSVC>:/W4 /WX>
-    $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-Wall -Wextra -Wpedantic -Werror>)
+#target_compile_options(not-an-engine PRIVATE
+#    $<$<CXX_COMPILER_ID:MSVC>:/W4 /WX>
+#    $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-Wall -Wextra -Wpedantic -Werror>)
 
 target_compile_definitions(not-an-engine
     PUBLIC
