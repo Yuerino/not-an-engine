@@ -13,3 +13,4 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 find_package(Vulkan REQUIRED)
 
 add_subdirectory(src)
+add_subdirectory(shader)

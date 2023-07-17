@@ -1,15 +1,19 @@
-#ifndef NOT_AN_ENGINE_GRAPHIC_SWAPCHAINDATA_HPP
-#define NOT_AN_ENGINE_GRAPHIC_SWAPCHAINDATA_HPP
+#ifndef NOT_AN_ENGINE_GRAPHIC_SWAPCHAIN_HPP
+#define NOT_AN_ENGINE_GRAPHIC_SWAPCHAIN_HPP
 
 #include <vector>
 
 #include <vulkan/vulkan.hpp>
 #include <vulkan/vulkan_raii.hpp>
 
+namespace nae {
+class Graphic;
+}
+
 namespace nae::graphic {
 
 class SwapChainData {
-    friend class Graphic;
+    friend class nae::Graphic;
 
 public:
     SwapChainData(const vk::raii::PhysicalDevice &physicalDevice,
@@ -35,4 +39,4 @@ private:
 
 } // namespace nae::graphic
 
-#endif // NOT_AN_ENGINE_GRAPHIC_SWAPCHAINDATA_HPP
+#endif // NOT_AN_ENGINE_GRAPHIC_SWAPCHAIN_HPP

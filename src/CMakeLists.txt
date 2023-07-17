@@ -8,7 +8,16 @@ set(SOURCE_FILES
     graphic/PhysicalDevice.cpp
     graphic/Device.cpp
     graphic/Surface.cpp
-    graphic/SwapChainData.cpp)
+    graphic/SwapChain.cpp
+    graphic/Image.cpp
+    graphic/Buffer.cpp
+    graphic/Descriptor.cpp
+    graphic/RenderPass.cpp
+    graphic/FrameBuffer.cpp
+    graphic/Texture.cpp
+    graphic/CommandBuffer.cpp
+    graphic/Shader.cpp
+    graphic/Pipeline.cpp)
 
 find_package(glfw3 3.3 CONFIG QUIET)
 if (NOT glfw3_FOUND)
@@ -22,6 +31,8 @@ if (NOT glfw3_FOUND)
 endif ()
 
 add_executable(not-an-engine ${SOURCE_FILES})
+
+add_dependencies(not-an-engine nae-shaders)
 
 #target_compile_options(not-an-engine PRIVATE
 #    $<$<CXX_COMPILER_ID:MSVC>:/W4 /WX>

@@ -18,6 +18,22 @@ namespace {
         return static_cast<uint32_t>(std::distance(queueFamilyProperties.begin(), queueFamilyPropertyIt));
     }
 
+    [[nodiscard]] uint32_t findMemoryType(const vk::PhysicalDeviceMemoryProperties &memoryProperties,
+                                          uint32_t typeBits,
+                                          vk::MemoryPropertyFlags requirementsMask) {
+        auto typeIndex = uint32_t(~0);
+        for (uint32_t i = 0; i < memoryProperties.memoryTypeCount; ++i) {
+            if ((typeBits & 1) &&
+                ((memoryProperties.memoryTypes[i].propertyFlags & requirementsMask) == requirementsMask)) {
+                typeIndex = i;
+                break;
+            }
+            typeBits >>= 1;
+        }
+        assert(typeIndex != uint32_t(~0));
+        return typeIndex;
+    }
+
 } // namespace
 
 // TODO: refactor to pass enabled layers and features to device
@@ -68,5 +84,15 @@ std::pair<uint32_t, uint32_t> findGraphicAndPresentQueueFamilyIndex(const vk::ra
 
     throw std::runtime_error("Failed to find graphic and present queue family index");
 }
+
+vk::raii::DeviceMemory createDeviceMemory(const vk::raii::Device &device,
+                                          const vk::PhysicalDeviceMemoryProperties &memoryProperties,
+                                          const vk::MemoryRequirements &memoryRequirements,
+                                          vk::MemoryPropertyFlags memoryPropertyFlags) {
+    uint32_t memoryTypeIndex = findMemoryType(memoryProperties, memoryRequirements.memoryTypeBits, memoryPropertyFlags);
+
+    return vk::raii::DeviceMemory{device, vk::MemoryAllocateInfo{memoryRequirements.size, memoryTypeIndex}};
+}
+
 
 } // namespace nae::graphic
