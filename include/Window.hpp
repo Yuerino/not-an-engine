@@ -1,8 +1,8 @@
-#ifndef NOT_AN_ENGINE_WINDOW_HPP
-#define NOT_AN_ENGINE_WINDOW_HPP
+#pragma once
 
 #include <string>
 
+#define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
 #include <vulkan/vulkan.hpp>
 
@@ -17,10 +17,12 @@ public:
 
     Window(const Window &) = delete;
     Window &operator=(const Window &) = delete;
-    Window(Window &&) = delete;
-    Window &operator=(Window &&) = delete;
 
     [[nodiscard]] bool shouldClose() const noexcept;
+
+    void createVulkanSurface(const VkInstance &vkInstance,
+                             const VkAllocationCallbacks *allocator,
+                             VkSurfaceKHR *surface) const;
 
 private:
     GLFWwindow *glfwWindow_;
@@ -29,5 +31,3 @@ private:
 };
 
 } // namespace nae
-
-#endif // NOT_AN_ENGINE_WINDOW_HPP

@@ -1,26 +1,17 @@
 #include "graphic/Surface.hpp"
 
 #include <cassert>
-#include <vulkan/vulkan.hpp>
-
-#include "GlfwApi.hpp"
 
 namespace nae::graphic {
 
-vk::raii::SurfaceKHR createSurface(const vk::raii::Instance &vkInstance, GLFWwindow *glfwWindow) {
+Surface::Surface(const Instance &instance, const Window &window) : window_{window} {
     VkSurfaceKHR surface;
-
-    auto result = glfwWrapper([&]() {
-        return glfwCreateWindowSurface(static_cast<VkInstance>(*vkInstance), glfwWindow, nullptr, &surface);
-    });
-    if (result != VK_SUCCESS) {
-        throw std::runtime_error("Failed to create window surface");
-    }
-
-    return vk::raii::SurfaceKHR{vkInstance, surface};
+    window_.createVulkanSurface(static_cast<VkInstance>(*instance.get()), nullptr, &surface);
+    vkSurface_ = vk::raii::SurfaceKHR{instance.get(), surface};
 }
 
-vk::SurfaceFormatKHR pickSurfaceFormat(const std::vector<vk::SurfaceFormatKHR> &formats) {
+vk::SurfaceFormatKHR Surface::pickSurfaceFormat(const PhysicalDevice &physicalDevice) const {
+    auto formats = physicalDevice.get().getSurfaceFormatsKHR(*vkSurface_);
     assert(!formats.empty());
     vk::SurfaceFormatKHR pickedFormat = formats[0];
 
@@ -40,7 +31,7 @@ vk::SurfaceFormatKHR pickSurfaceFormat(const std::vector<vk::SurfaceFormatKHR> &
         for (const auto &requestedFormat: requestedFormats) {
             auto it = std::find_if(formats.begin(),
                                    formats.end(),
-                                   [&requestedFormat, &requestedColorSpace](vk::SurfaceFormatKHR const &f) {
+                                   [&requestedFormat, &requestedColorSpace](const vk::SurfaceFormatKHR &f) {
                                        return (f.format == requestedFormat) && (f.colorSpace == requestedColorSpace);
                                    });
             if (it != formats.end()) {
@@ -52,6 +43,10 @@ vk::SurfaceFormatKHR pickSurfaceFormat(const std::vector<vk::SurfaceFormatKHR> &
 
     assert(pickedFormat.colorSpace == vk::ColorSpaceKHR::eSrgbNonlinear);
     return pickedFormat;
+}
+
+const vk::raii::SurfaceKHR &Surface::get() const noexcept {
+    return vkSurface_;
 }
 
 } // namespace nae::graphic

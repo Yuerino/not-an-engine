@@ -5,7 +5,7 @@
 namespace nae::graphic {
 
 TextureData::TextureData(const vk::raii::PhysicalDevice &physicalDevice,
-                         const vk::raii::Device &device,
+                         const Device &device,
                          const vk::Extent2D &extent_,
                          vk::ImageUsageFlags usageFlags,
                          vk::FormatFeatureFlags formatFeatureFlags,
@@ -13,7 +13,7 @@ TextureData::TextureData(const vk::raii::PhysicalDevice &physicalDevice,
                          bool forceStaging)
     : format_{vk::Format::eR8G8B8A8Unorm},
       extent_{extent_},
-      vkSampler_{device,
+      vkSampler_{device.get(),
                  {vk::SamplerCreateFlags{},
                   vk::Filter::eLinear,
                   vk::Filter::eLinear,
@@ -41,10 +41,8 @@ TextureData::TextureData(const vk::raii::PhysicalDevice &physicalDevice,
 
     if (needStaging_) {
         assert((formatProperties.optimalTilingFeatures & formatFeatureFlags) == formatFeatureFlags);
-        stagingBufferData_ = BufferData{physicalDevice,
-                                        device,
-                                        extent_.width * extent_.height * 4,
-                                        vk::BufferUsageFlagBits::eTransferSrc};
+        stagingBufferData_ =
+                BufferData{device, extent_.width * extent_.height * 4, vk::BufferUsageFlagBits::eTransferSrc};
         imageTiling = vk::ImageTiling::eOptimal;
         usageFlags |= vk::ImageUsageFlagBits::eTransferDst;
         initialLayout = vk::ImageLayout::eUndefined;
@@ -54,8 +52,7 @@ TextureData::TextureData(const vk::raii::PhysicalDevice &physicalDevice,
         requirements = vk::MemoryPropertyFlagBits::eHostCoherent | vk::MemoryPropertyFlagBits::eHostVisible;
     }
 
-    imageData_ = ImageData{physicalDevice,
-                           device,
+    imageData_ = ImageData{device,
                            format_,
                            extent_,
                            imageTiling,

@@ -4,6 +4,8 @@
 #include <vulkan/vulkan.hpp>
 #include <vulkan/vulkan_raii.hpp>
 
+#include "graphic/Device.hpp"
+
 namespace nae {
 class Graphic;
 }
@@ -17,8 +19,7 @@ class ImageData {
     friend class TextureData;
 
 public:
-    ImageData(const vk::raii::PhysicalDevice &physicalDevice,
-              const vk::raii::Device &device,
+    ImageData(const Device &device,
               vk::Format format,
               const vk::Extent2D &extent,
               vk::ImageTiling tiling,
@@ -46,12 +47,8 @@ private:
 
 class DepthBufferData : public ImageData {
 public:
-    DepthBufferData(const vk::raii::PhysicalDevice &physicalDevice,
-                    const vk::raii::Device &device,
-                    vk::Format format,
-                    const vk::Extent2D &extent)
-        : ImageData(physicalDevice,
-                    device,
+    DepthBufferData(const Device &device, vk::Format format, const vk::Extent2D &extent)
+        : ImageData(device,
                     format,
                     extent,
                     vk::ImageTiling::eOptimal,

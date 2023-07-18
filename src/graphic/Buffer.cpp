@@ -1,19 +1,13 @@
 #include "graphic/Buffer.hpp"
 
-#include "graphic/Device.hpp"
-
 namespace nae::graphic {
 
-BufferData::BufferData(const vk::raii::PhysicalDevice &physicalDevice,
-                       const vk::raii::Device &device,
+BufferData::BufferData(const Device &device,
                        vk::DeviceSize size,
                        vk::BufferUsageFlags usage,
                        vk::MemoryPropertyFlags propertyFlags)
-    : buffer_{device, {vk::BufferCreateFlags(), size, usage}},
-      deviceMemory_{createDeviceMemory(device,
-                                       physicalDevice.getMemoryProperties(),
-                                       buffer_.getMemoryRequirements(),
-                                       propertyFlags)}
+    : buffer_{device.get(), {vk::BufferCreateFlags(), size, usage}},
+      deviceMemory_{device.createDeviceMemory(buffer_.getMemoryRequirements(), propertyFlags)}
 #if !defined(NDEBUG)
       ,
       size_{size},

@@ -15,6 +15,7 @@ Instance::Instance(const std::vector<std::string> &layers,
                    const std::vector<std::string> &extensions,
                    uint32_t apiVersion)
     : vkContext_{} {
+    // TODO: log layers and extensions
     vk::ApplicationInfo appInfo{"Application made with not-an-engine",
                                 VK_MAKE_API_VERSION(0, 1, 0, 0),
                                 "not-an-engine",
@@ -43,7 +44,7 @@ Instance::Instance(const std::vector<std::string> &layers,
 #endif
 }
 
-const vk::raii::Instance &Instance::operator*() const noexcept {
+const vk::raii::Instance &Instance::get() const noexcept {
     return vkInstance_;
 }
 
@@ -129,21 +130,21 @@ std::vector<std::string> Instance::getSurfacePlatformExtensions() {
 #elif defined(VK_USE_PLATFORM_IOS_MVK)
     extensions.emplace_back(VK_MVK_IOS_SURFACE_EXTENSION_NAME);
 #elif defined(VK_USE_PLATFORM_MACOS_MVK)
-        extensions.emplace_back(VK_MVK_MACOS_SURFACE_EXTENSION_NAME);
+    extensions.emplace_back(VK_MVK_MACOS_SURFACE_EXTENSION_NAME);
 #elif defined(VK_USE_PLATFORM_MIR_KHR)
-        extensions.emplace_back(VK_KHR_MIR_SURFACE_EXTENSION_NAME);
+    extensions.emplace_back(VK_KHR_MIR_SURFACE_EXTENSION_NAME);
 #elif defined(VK_USE_PLATFORM_VI_NN)
-        extensions.emplace_back(VK_NN_VI_SURFACE_EXTENSION_NAME);
+    extensions.emplace_back(VK_NN_VI_SURFACE_EXTENSION_NAME);
 #elif defined(VK_USE_PLATFORM_WAYLAND_KHR)
-        extensions.emplace_back(VK_KHR_WAYLAND_SURFACE_EXTENSION_NAME);
+    extensions.emplace_back(VK_KHR_WAYLAND_SURFACE_EXTENSION_NAME);
 #elif defined(VK_USE_PLATFORM_WIN32_KHR)
-        extensions.emplace_back(VK_KHR_WIN32_SURFACE_EXTENSION_NAME);
+    extensions.emplace_back(VK_KHR_WIN32_SURFACE_EXTENSION_NAME);
 #elif defined(VK_USE_PLATFORM_XCB_KHR)
-        extensions.emplace_back(VK_KHR_XCB_SURFACE_EXTENSION_NAME);
+    extensions.emplace_back(VK_KHR_XCB_SURFACE_EXTENSION_NAME);
 #elif defined(VK_USE_PLATFORM_XLIB_KHR)
-        extensions.emplace_back(VK_KHR_XLIB_SURFACE_EXTENSION_NAME);
+    extensions.emplace_back(VK_KHR_XLIB_SURFACE_EXTENSION_NAME);
 #elif defined(VK_USE_PLATFORM_XLIB_XRANDR_EXT)
-        extensions.emplace_back(VK_EXT_ACQUIRE_XLIB_DISPLAY_EXTENSION_NAME);
+    extensions.emplace_back(VK_EXT_ACQUIRE_XLIB_DISPLAY_EXTENSION_NAME);
 #endif
     return extensions;
 }

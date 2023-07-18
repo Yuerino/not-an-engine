@@ -2,7 +2,6 @@
 
 #include <limits>
 
-#include "graphic/Surface.hpp"
 #include "util.hpp"
 
 namespace nae::graphic {
@@ -26,17 +25,17 @@ namespace {
 
 } // namespace
 
-SwapChainData::SwapChainData(const vk::raii::PhysicalDevice &physicalDevice,
-                             const vk::raii::SurfaceKHR &surface,
+SwapChainData::SwapChainData(const PhysicalDevice &physicalDevice,
+                             const Surface &surface,
                              const vk::raii::Device &device,
                              const vk::Extent2D &windowExtent,
                              vk::ImageUsageFlags usage,
                              uint32_t graphicsQueueFamilyIndex,
                              uint32_t presentQueueFamilyIndex) {
-    vk::SurfaceFormatKHR surfaceFormat = pickSurfaceFormat(physicalDevice.getSurfaceFormatsKHR(*surface));
+    vk::SurfaceFormatKHR surfaceFormat = surface.pickSurfaceFormat(physicalDevice);
     colorFormat_ = surfaceFormat.format;
 
-    vk::SurfaceCapabilitiesKHR surfaceCapabilities = physicalDevice.getSurfaceCapabilitiesKHR(*surface);
+    vk::SurfaceCapabilitiesKHR surfaceCapabilities = physicalDevice.get().getSurfaceCapabilitiesKHR(*surface.get());
     vk::Extent2D swapChainExtent;
 
     if (surfaceCapabilities.currentExtent.width == std::numeric_limits<uint32_t>::max()) {
@@ -65,9 +64,9 @@ SwapChainData::SwapChainData(const vk::raii::PhysicalDevice &physicalDevice,
                     ? vk::CompositeAlphaFlagBitsKHR::eInherit
                     : vk::CompositeAlphaFlagBitsKHR::eOpaque;
 
-    vk::PresentModeKHR presentMode = pickPresentMode(physicalDevice.getSurfacePresentModesKHR(*surface));
+    vk::PresentModeKHR presentMode = pickPresentMode(physicalDevice.get().getSurfacePresentModesKHR(*surface.get()));
     vk::SwapchainCreateInfoKHR swapChainCreateInfo(vk::SwapchainCreateFlagsKHR{},
-                                                   *surface,
+                                                   *surface.get(),
                                                    surfaceCapabilities.minImageCount,
                                                    colorFormat_,
                                                    surfaceFormat.colorSpace,

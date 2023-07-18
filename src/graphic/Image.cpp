@@ -4,8 +4,7 @@
 
 namespace nae::graphic {
 
-ImageData::ImageData(const vk::raii::PhysicalDevice &physicalDevice,
-                     const vk::raii::Device &device,
+ImageData::ImageData(const Device &device,
                      vk::Format format,
                      const vk::Extent2D &extent,
                      vk::ImageTiling tiling,
@@ -14,7 +13,7 @@ ImageData::ImageData(const vk::raii::PhysicalDevice &physicalDevice,
                      vk::MemoryPropertyFlags memoryProperties,
                      vk::ImageAspectFlags aspectMask)
     : format_{format},
-      image_{device,
+      image_{device.get(),
              {vk::ImageCreateFlags(),
               vk::ImageType::e2D,
               format,
@@ -27,12 +26,9 @@ ImageData::ImageData(const vk::raii::PhysicalDevice &physicalDevice,
               vk::SharingMode::eExclusive,
               {},
               initialLayout}},
-      deviceMemory_{createDeviceMemory(device,
-                                       physicalDevice.getMemoryProperties(),
-                                       image_.getMemoryRequirements(),
-                                       memoryProperties)} {
+      deviceMemory_{device.createDeviceMemory(image_.getMemoryRequirements(), memoryProperties)} {
     image_.bindMemory(*deviceMemory_, 0);
-    imageView_ = vk::raii::ImageView{device,
+    imageView_ = vk::raii::ImageView{device.get(),
                                      {vk::ImageViewCreateFlags(),
                                       *image_,
                                       vk::ImageViewType::e2D,

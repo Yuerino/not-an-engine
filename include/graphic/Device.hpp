@@ -1,25 +1,46 @@
-#ifndef NOT_AN_ENGINE_GRAPHIC_DEVICE_HPP
-#define NOT_AN_ENGINE_GRAPHIC_DEVICE_HPP
+#pragma once
 
 #include <string>
 #include <vector>
 
 #include <vulkan/vulkan_raii.hpp>
 
+#include "graphic/PhysicalDevice.hpp"
+#include "graphic/Surface.hpp"
+
 namespace nae::graphic {
 
-[[nodiscard]] vk::raii::Device createDevice(const vk::raii::PhysicalDevice &physicalDevice,
-                                            uint32_t graphicQueueFamilyIndex,
-                                            const std::vector<std::string> &extensions = {});
+class PhysicalDevice;
+class Surface;
 
-[[nodiscard]] std::pair<uint32_t, uint32_t>
-findGraphicAndPresentQueueFamilyIndex(const vk::raii::PhysicalDevice &physicalDevice,
-                                      const vk::raii::SurfaceKHR &surface);
+class Device {
+public:
+    explicit Device(const PhysicalDevice &physicalDevice, const Surface &surface);
 
-[[nodiscard]] vk::raii::DeviceMemory createDeviceMemory(const vk::raii::Device &device,
-                                                        const vk::PhysicalDeviceMemoryProperties &memoryProperties,
-                                                        const vk::MemoryRequirements &memoryRequirements,
-                                                        vk::MemoryPropertyFlags memoryPropertyFlags);
+    Device(const Device &) = delete;
+    Device &operator=(const Device &) = delete;
+
+    [[nodiscard]] vk::raii::DeviceMemory createDeviceMemory(const vk::MemoryRequirements &memoryRequirements,
+                                                            vk::MemoryPropertyFlags memoryPropertyFlags) const;
+
+    [[nodiscard]] const vk::raii::Queue &getGraphicQueue() const noexcept;
+    [[nodiscard]] const vk::raii::Queue &getPresentQueue() const noexcept;
+    [[nodiscard]] uint32_t getGraphicQueueFamilyIndex() const noexcept;
+    [[nodiscard]] uint32_t getPresentQueueFamilyIndex() const noexcept;
+    [[nodiscard]] const vk::raii::Device &get() const noexcept;
+
+private:
+    void setGraphicAndPresentQueueFamilyIndex(const Surface &surface);
+
+    const PhysicalDevice &physicalDevice_;
+
+    vk::raii::Device vkDevice_{nullptr};
+    vk::raii::Queue vkGraphicQueue_{nullptr};
+    vk::raii::Queue vkPresentQueue_{nullptr};
+
+    uint32_t graphicQueueFamilyIndex_{};
+    uint32_t presentQueueFamilyIndex_{};
+};
 
 template<typename T>
 void copyToDevice(const vk::raii::DeviceMemory &deviceMemory,
@@ -47,5 +68,3 @@ void copyToDevice(const vk::raii::DeviceMemory &deviceMemory, const T &data) {
 }
 
 } // namespace nae::graphic
-
-#endif // NOT_AN_ENGINE_GRAPHIC_DEVICE_HPP

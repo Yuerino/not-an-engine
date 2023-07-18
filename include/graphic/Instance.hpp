@@ -17,7 +17,7 @@ public:
     Instance(const Instance &) = delete;
     Instance &operator=(const Instance &) = delete;
 
-    [[nodiscard]] const vk::raii::Instance &operator*() const noexcept;
+    [[nodiscard]] const vk::raii::Instance &get() const noexcept;
 
     /*!
      * @brief Get the list of required extensions for GLFW.

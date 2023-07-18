@@ -8,8 +8,11 @@
 
 #include "Window.hpp"
 #include "graphic/Buffer.hpp"
+#include "graphic/Device.hpp"
 #include "graphic/Image.hpp"
 #include "graphic/Instance.hpp"
+#include "graphic/PhysicalDevice.hpp"
+#include "graphic/Surface.hpp"
 #include "graphic/SwapChain.hpp"
 
 namespace nae {
@@ -17,6 +20,7 @@ namespace nae {
 class Graphic {
 public:
     explicit Graphic(const Window &window);
+    ~Graphic();
 
     Graphic(const Graphic &) = delete;
     Graphic &operator=(const Graphic &) = delete;
@@ -27,13 +31,11 @@ private:
     const Window &window_;
 
     graphic::Instance instance_;
-    std::unique_ptr<vk::raii::PhysicalDevice> vkPhysicalDevicePtr_;
-    std::unique_ptr<vk::raii::SurfaceKHR> vkSurfacePtr_;
-    std::unique_ptr<vk::raii::Device> vkDevicePtr_;
+    graphic::Surface surface_;
+    graphic::PhysicalDevice physicalDevice_;
+    graphic::Device device_;
     vk::raii::CommandPool vkCommandPool_{nullptr};
     vk::raii::CommandBuffer vkCommandBuffer_{nullptr};
-    vk::raii::Queue vkGraphicQueue_{nullptr};
-    vk::raii::Queue vkPresentQueue_{nullptr};
     std::unique_ptr<graphic::SwapChainData> SwapChainDataPtr_;
     graphic::DepthBufferData depthBufferData_{nullptr};
     graphic::BufferData uniformBufferData_{nullptr};
@@ -49,9 +51,6 @@ private:
     vk::raii::ShaderModule vkFragmentShaderModule_{nullptr};
     vk::raii::PipelineCache vkPipelineCache_{nullptr};
     vk::raii::Pipeline graphicPipeline_{nullptr};
-
-    uint32_t graphicQueueFamilyIndex_{};
-    uint32_t presentQueueFamilyIndex_{};
 };
 
 } // namespace nae

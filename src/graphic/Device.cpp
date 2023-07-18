@@ -4,42 +4,17 @@
 
 namespace nae::graphic {
 
-namespace {
+[[nodiscard]] static uint32_t findQueueFamilyIndex(const std::vector<vk::QueueFamilyProperties> &queueFamilyProperties,
+                                                   vk::QueueFlags queueFlags);
 
-    [[nodiscard]] uint32_t findQueueFamilyIndex(const std::vector<vk::QueueFamilyProperties> &queueFamilyProperties,
-                                                vk::QueueFlagBits queueFlagBits) {
-        auto queueFamilyPropertyIt = std::find_if(
-                queueFamilyProperties.begin(),
-                queueFamilyProperties.end(),
-                [&queueFlagBits](const vk::QueueFamilyProperties &queueFamilyProperty) {
-                    return queueFamilyProperty.queueFlags & queueFlagBits;
-                });
-        assert(queueFamilyPropertyIt != queueFamilyProperties.end());
-        return static_cast<uint32_t>(std::distance(queueFamilyProperties.begin(), queueFamilyPropertyIt));
-    }
+[[nodiscard]] static uint32_t findMemoryType(const vk::PhysicalDeviceMemoryProperties &memoryProperties,
+                                             uint32_t typeBits,
+                                             vk::MemoryPropertyFlags requirementsMask);
 
-    [[nodiscard]] uint32_t findMemoryType(const vk::PhysicalDeviceMemoryProperties &memoryProperties,
-                                          uint32_t typeBits,
-                                          vk::MemoryPropertyFlags requirementsMask) {
-        auto typeIndex = uint32_t(~0);
-        for (uint32_t i = 0; i < memoryProperties.memoryTypeCount; ++i) {
-            if ((typeBits & 1) &&
-                ((memoryProperties.memoryTypes[i].propertyFlags & requirementsMask) == requirementsMask)) {
-                typeIndex = i;
-                break;
-            }
-            typeBits >>= 1;
-        }
-        assert(typeIndex != uint32_t(~0));
-        return typeIndex;
-    }
+Device::Device(const PhysicalDevice &physicalDevice, const Surface &surface) : physicalDevice_{physicalDevice} {
+    setGraphicAndPresentQueueFamilyIndex(surface);
 
-} // namespace
-
-// TODO: refactor to pass enabled layers and features to device
-vk::raii::Device createDevice(const vk::raii::PhysicalDevice &physicalDevice,
-                              uint32_t graphicQueueFamilyIndex,
-                              const std::vector<std::string> &extensions) {
+    auto extensions = physicalDevice_.getExtensions();
     std::vector<const char *> enabledExtensions;
     enabledExtensions.reserve(extensions.size());
     for (const auto &extension: extensions) {
@@ -48,51 +23,101 @@ vk::raii::Device createDevice(const vk::raii::PhysicalDevice &physicalDevice,
 
     float queuePriority = 0.0f;
     vk::DeviceQueueCreateInfo deviceQueueCreateInfos{vk::DeviceQueueCreateFlags{},
-                                                     graphicQueueFamilyIndex,
+                                                     graphicQueueFamilyIndex_,
                                                      1,
                                                      &queuePriority};
+    // TODO: pass physical device features
     vk::DeviceCreateInfo deviceCreateInfo{vk::DeviceCreateFlags{}, deviceQueueCreateInfos, {}, enabledExtensions};
 
-    return vk::raii::Device{physicalDevice, deviceCreateInfo};
+    vkDevice_ = vk::raii::Device{physicalDevice_.get(), deviceCreateInfo};
+
+    vkGraphicQueue_ = vk::raii::Queue{vkDevice_, graphicQueueFamilyIndex_, 0};
+    vkPresentQueue_ = vk::raii::Queue{vkDevice_, presentQueueFamilyIndex_, 0};
 }
 
-std::pair<uint32_t, uint32_t> findGraphicAndPresentQueueFamilyIndex(const vk::raii::PhysicalDevice &physicalDevice,
-                                                                    const vk::raii::SurfaceKHR &surface) {
-    auto queueFamilyProperties = physicalDevice.getQueueFamilyProperties();
+vk::raii::DeviceMemory Device::createDeviceMemory(const vk::MemoryRequirements &memoryRequirements,
+                                                  vk::MemoryPropertyFlags memoryPropertyFlags) const {
+    uint32_t memoryTypeIndex = findMemoryType(physicalDevice_.get().getMemoryProperties(),
+                                              memoryRequirements.memoryTypeBits,
+                                              memoryPropertyFlags);
+
+    return {vkDevice_, vk::MemoryAllocateInfo{memoryRequirements.size, memoryTypeIndex}};
+}
+
+const vk::raii::Queue &Device::getGraphicQueue() const noexcept {
+    return vkGraphicQueue_;
+}
+
+const vk::raii::Queue &Device::getPresentQueue() const noexcept {
+    return vkPresentQueue_;
+}
+
+uint32_t Device::getGraphicQueueFamilyIndex() const noexcept {
+    return graphicQueueFamilyIndex_;
+}
+
+uint32_t Device::getPresentQueueFamilyIndex() const noexcept {
+    return presentQueueFamilyIndex_;
+}
+
+const vk::raii::Device &Device::get() const noexcept {
+    return vkDevice_;
+}
+
+void Device::setGraphicAndPresentQueueFamilyIndex(const Surface &surface) {
+    auto queueFamilyProperties = physicalDevice_.get().getQueueFamilyProperties();
     auto graphicQueueFamilyIndex = findQueueFamilyIndex(queueFamilyProperties, vk::QueueFlagBits::eGraphics);
 
     // If graphic queue family index supports present then returns it
-    if (physicalDevice.getSurfaceSupportKHR(graphicQueueFamilyIndex, *surface)) {
-        return {graphicQueueFamilyIndex, graphicQueueFamilyIndex};
+    if (physicalDevice_.get().getSurfaceSupportKHR(graphicQueueFamilyIndex, *surface.get())) {
+        graphicQueueFamilyIndex_ = graphicQueueFamilyIndex;
+        presentQueueFamilyIndex_ = graphicQueueFamilyIndex;
     }
 
     // Looks for family index that supports both graphic and presents
     for (size_t i = 0; i < queueFamilyProperties.size(); ++i) {
         if ((queueFamilyProperties[i].queueFlags & vk::QueueFlagBits::eGraphics) &&
-            physicalDevice.getSurfaceSupportKHR(static_cast<uint32_t>(i), *surface)) {
-            return {static_cast<uint32_t>(i), static_cast<uint32_t>(i)};
+            physicalDevice_.get().getSurfaceSupportKHR(static_cast<uint32_t>(i), *surface.get())) {
+            graphicQueueFamilyIndex_ = static_cast<uint32_t>(i);
+            presentQueueFamilyIndex_ = static_cast<uint32_t>(i);
         }
     }
 
     // If there's no family index that supports both graphic and presents then looks for family index that supports
     // present
     for (size_t i = 0; i < queueFamilyProperties.size(); ++i) {
-        if (physicalDevice.getSurfaceSupportKHR(static_cast<uint32_t>(i), *surface)) {
-            return {graphicQueueFamilyIndex, static_cast<uint32_t>(i)};
+        if (physicalDevice_.get().getSurfaceSupportKHR(static_cast<uint32_t>(i), *surface.get())) {
+            graphicQueueFamilyIndex_ = graphicQueueFamilyIndex;
+            presentQueueFamilyIndex_ = static_cast<uint32_t>(i);
         }
     }
-
-    throw std::runtime_error("Failed to find graphic and present queue family index");
 }
 
-vk::raii::DeviceMemory createDeviceMemory(const vk::raii::Device &device,
-                                          const vk::PhysicalDeviceMemoryProperties &memoryProperties,
-                                          const vk::MemoryRequirements &memoryRequirements,
-                                          vk::MemoryPropertyFlags memoryPropertyFlags) {
-    uint32_t memoryTypeIndex = findMemoryType(memoryProperties, memoryRequirements.memoryTypeBits, memoryPropertyFlags);
-
-    return vk::raii::DeviceMemory{device, vk::MemoryAllocateInfo{memoryRequirements.size, memoryTypeIndex}};
+static uint32_t findQueueFamilyIndex(const std::vector<vk::QueueFamilyProperties> &queueFamilyProperties,
+                                     vk::QueueFlags queueFlags) {
+    auto queueFamilyPropertyIt = std::find_if(queueFamilyProperties.begin(),
+                                              queueFamilyProperties.end(),
+                                              [&queueFlags](const vk::QueueFamilyProperties &queueFamilyProperty) {
+                                                  return queueFamilyProperty.queueFlags & queueFlags;
+                                              });
+    assert(queueFamilyPropertyIt != queueFamilyProperties.end());
+    return static_cast<uint32_t>(std::distance(queueFamilyProperties.begin(), queueFamilyPropertyIt));
 }
 
+static uint32_t findMemoryType(const vk::PhysicalDeviceMemoryProperties &memoryProperties,
+                               uint32_t typeBits,
+                               vk::MemoryPropertyFlags requirementsMask) {
+    auto typeIndex = uint32_t(~0);
+    for (uint32_t i = 0; i < memoryProperties.memoryTypeCount; ++i) {
+        if ((typeBits & 1) &&
+            ((memoryProperties.memoryTypes[i].propertyFlags & requirementsMask) == requirementsMask)) {
+            typeIndex = i;
+            break;
+        }
+        typeBits >>= 1;
+    }
+    assert(typeIndex != uint32_t(~0));
+    return typeIndex;
+}
 
 } // namespace nae::graphic

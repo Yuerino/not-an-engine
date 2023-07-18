@@ -33,4 +33,13 @@ bool Window::shouldClose() const noexcept {
             glfwWrapper([&glfwWindow_ = glfwWindow_]() { return glfwWindowShouldClose(glfwWindow_); }));
 }
 
+void Window::createVulkanSurface(const VkInstance &vkInstance,
+                                 const VkAllocationCallbacks *allocator,
+                                 VkSurfaceKHR *surface) const {
+    auto result = glfwWrapper([&]() { return glfwCreateWindowSurface(vkInstance, glfwWindow_, allocator, surface); });
+    if (result != VK_SUCCESS) {
+        throw std::runtime_error("Failed to create window surface");
+    }
+}
+
 } // namespace nae

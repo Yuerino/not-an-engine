@@ -6,6 +6,7 @@
 
 #include "graphic/Buffer.hpp"
 #include "graphic/CommandBuffer.hpp"
+#include "graphic/Device.hpp"
 #include "graphic/Image.hpp"
 
 namespace nae::graphic {
@@ -13,7 +14,7 @@ namespace nae::graphic {
 class TextureData {
 public:
     TextureData(const vk::raii::PhysicalDevice &physicalDevice,
-                const vk::raii::Device &device,
+                const Device &device,
                 const vk::Extent2D &extent_ = {256, 256},
                 vk::ImageUsageFlags usageFlags = {},
                 vk::FormatFeatureFlags formatFeatureFlags = {},

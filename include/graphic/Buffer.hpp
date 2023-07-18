@@ -20,8 +20,7 @@ class BufferData {
     friend class TextureData;
 
 public:
-    BufferData(const vk::raii::PhysicalDevice &physicalDevice,
-               const vk::raii::Device &device,
+    BufferData(const Device &device,
                vk::DeviceSize size,
                vk::BufferUsageFlags usage,
                vk::MemoryPropertyFlags propertyFlags = vk::MemoryPropertyFlagBits::eHostVisible |
@@ -50,8 +49,7 @@ public:
     }
 
     template<typename DataType>
-    void upload(const vk::raii::PhysicalDevice &physicalDevice,
-                const vk::raii::Device &device,
+    void upload(const Device &device,
                 const vk::raii::CommandPool &commandPool,
                 const vk::raii::Queue &queue,
                 const std::vector<DataType> &data,
@@ -65,7 +63,7 @@ public:
         size_t dataSize = data.size() * elementSize;
         assert(dataSize <= size_);
 
-        BufferData stagingBuffer{physicalDevice, device, dataSize, vk::BufferUsageFlagBits::eTransferSrc};
+        BufferData stagingBuffer{device, dataSize, vk::BufferUsageFlagBits::eTransferSrc};
         copyToDevice(stagingBuffer.deviceMemory_, data.data(), data.size(), elementSize);
 
         oneTimeSubmit(device, commandPool, queue, [&](const vk::raii::CommandBuffer &commandBuffer) {
