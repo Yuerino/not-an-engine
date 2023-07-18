@@ -7,7 +7,7 @@
 
 namespace nae::graphic {
 
-vk::raii::SurfaceKHR createSurface(vk::raii::Instance &vkInstance, GLFWwindow *glfwWindow) {
+vk::raii::SurfaceKHR createSurface(const vk::raii::Instance &vkInstance, GLFWwindow *glfwWindow) {
     VkSurfaceKHR surface;
 
     auto result = glfwWrapper([&]() {

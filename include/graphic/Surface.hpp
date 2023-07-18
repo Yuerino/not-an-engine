@@ -9,7 +9,7 @@
 
 namespace nae::graphic {
 
-[[nodiscard]] vk::raii::SurfaceKHR createSurface(vk::raii::Instance &vkInstance, GLFWwindow *glfwWindow);
+[[nodiscard]] vk::raii::SurfaceKHR createSurface(const vk::raii::Instance &vkInstance, GLFWwindow *glfwWindow);
 
 [[nodiscard]] vk::SurfaceFormatKHR pickSurfaceFormat(const std::vector<vk::SurfaceFormatKHR> &formats);
 

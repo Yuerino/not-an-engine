@@ -1,16 +1,15 @@
-#ifndef NOT_AN_ENGINE_GRAPHIC_GRAPHIC_HPP
-#define NOT_AN_ENGINE_GRAPHIC_GRAPHIC_HPP
+#pragma once
 
 #include <memory>
 #include <vector>
 
-#include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
 #include <vulkan/vulkan_raii.hpp>
 
 #include "Window.hpp"
 #include "graphic/Buffer.hpp"
 #include "graphic/Image.hpp"
+#include "graphic/Instance.hpp"
 #include "graphic/SwapChain.hpp"
 
 namespace nae {
@@ -18,19 +17,16 @@ namespace nae {
 class Graphic {
 public:
     explicit Graphic(const Window &window);
-    ~Graphic() = default;
 
     Graphic(const Graphic &) = delete;
     Graphic &operator=(const Graphic &) = delete;
-    Graphic(Graphic &&) = delete;
-    Graphic &operator=(Graphic &&) = delete;
 
     void Update();
 
 private:
     const Window &window_;
-    vk::raii::Context vkContext_;
-    vk::raii::Instance vkInstance_;
+
+    graphic::Instance instance_;
     std::unique_ptr<vk::raii::PhysicalDevice> vkPhysicalDevicePtr_;
     std::unique_ptr<vk::raii::SurfaceKHR> vkSurfacePtr_;
     std::unique_ptr<vk::raii::Device> vkDevicePtr_;
@@ -54,14 +50,8 @@ private:
     vk::raii::PipelineCache vkPipelineCache_{nullptr};
     vk::raii::Pipeline graphicPipeline_{nullptr};
 
-    uint32_t graphicQueueFamilyIndex_;
-    uint32_t presentQueueFamilyIndex_;
-
-#if !defined(NDEBUG)
-    vk::raii::DebugUtilsMessengerEXT vkDebugUtilsMessenger_;
-#endif
+    uint32_t graphicQueueFamilyIndex_{};
+    uint32_t presentQueueFamilyIndex_{};
 };
 
 } // namespace nae
-
-#endif // NOT_AN_ENGINE_GRAPHIC_GRAPHIC_HPP

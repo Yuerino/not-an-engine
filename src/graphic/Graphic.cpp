@@ -7,7 +7,6 @@
 #include "graphic/Descriptor.hpp"
 #include "graphic/Device.hpp"
 #include "graphic/FrameBuffer.hpp"
-#include "graphic/Instance.hpp"
 #include "graphic/PhysicalDevice.hpp"
 #include "graphic/Pipeline.hpp"
 #include "graphic/RenderPass.hpp"
@@ -18,23 +17,10 @@
 namespace nae {
 
 Graphic::Graphic(const Window &window)
-    : window_(window),
-      vkContext_{},
-      vkInstance_{graphic::createInstance(vkContext_,
-                                          "Vulkan window",
-                                          VK_MAKE_API_VERSION(0, 1, 0, 0),
-                                          "Not an engine",
-                                          VK_MAKE_API_VERSION(0, 1, 0, 0))},
-      graphicQueueFamilyIndex_{0},
-      presentQueueFamilyIndex_{0}
-#if !defined(NDEBUG)
-      ,
-      vkDebugUtilsMessenger_{vkInstance_, graphic::makeDebugUtilsMessengerCreateInfoEXT()}
-#endif
-{
-    vkPhysicalDevicePtr_ = std::make_unique<vk::raii::PhysicalDevice>(graphic::createPhysicalDevice(vkInstance_));
+    : window_(window), instance_{{}, graphic::Instance::getGlfwRequiredExtensions()} {
+    vkPhysicalDevicePtr_ = std::make_unique<vk::raii::PhysicalDevice>(graphic::createPhysicalDevice(*instance_));
 
-    vkSurfacePtr_ = std::make_unique<vk::raii::SurfaceKHR>(graphic::createSurface(vkInstance_, window.glfwWindow_));
+    vkSurfacePtr_ = std::make_unique<vk::raii::SurfaceKHR>(graphic::createSurface(*instance_, window_.glfwWindow_));
 
     std::tie(graphicQueueFamilyIndex_, presentQueueFamilyIndex_) =
             graphic::findGraphicAndPresentQueueFamilyIndex(*vkPhysicalDevicePtr_, *vkSurfacePtr_);
@@ -53,20 +39,20 @@ Graphic::Graphic(const Window &window)
             *vkPhysicalDevicePtr_,
             *vkSurfacePtr_,
             *vkDevicePtr_,
-            window.extent_,
+            window_.extent_,
             vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eTransferSrc,
             graphicQueueFamilyIndex_,
             presentQueueFamilyIndex_);
 
     depthBufferData_ =
-            graphic::DepthBufferData{*vkPhysicalDevicePtr_, *vkDevicePtr_, vk::Format::eD16Unorm, window.extent_};
+            graphic::DepthBufferData{*vkPhysicalDevicePtr_, *vkDevicePtr_, vk::Format::eD16Unorm, window_.extent_};
 
     uniformBufferData_ = graphic::BufferData(*vkPhysicalDevicePtr_,
                                              *vkDevicePtr_,
                                              sizeof(glm::mat4x4),
                                              vk::BufferUsageFlagBits::eUniformBuffer);
 
-    modelMatrix_ = util::createModelViewProjectionClipMatrix(window.extent_);
+    modelMatrix_ = util::createModelViewProjectionClipMatrix(window_.extent_);
     graphic::copyToDevice(uniformBufferData_.deviceMemory_, modelMatrix_);
 
     vkDescriptorSetLayout_ = graphic::createDescriptorSetLayout(
@@ -83,7 +69,7 @@ Graphic::Graphic(const Window &window)
                                                 vkRenderPass_,
                                                 SwapChainDataPtr_->imageViews_,
                                                 &depthBufferData_.imageView_,
-                                                window.extent_);
+                                                window_.extent_);
 
     vertexBufferData_ = graphic::BufferData(*vkPhysicalDevicePtr_,
                                             *vkDevicePtr_,
