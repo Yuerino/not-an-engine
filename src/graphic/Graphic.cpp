@@ -70,14 +70,10 @@ Graphic::Graphic(const Window &window)
             {{vk::DescriptorType::eUniformBuffer, uniformBufferData_.buffer_, VK_WHOLE_SIZE, nullptr}},
             {});
 
-    vkVertexShaderModule_ = graphic::createShaderModule(
-            device_.get(),
-            vk::ShaderStageFlagBits::eVertex,
-            "C:/Users/yueri/Documents/Project/not-an-engine/shader/shader.vert.spv");
-    vkFragmentShaderModule_ = graphic::createShaderModule(
-            device_.get(),
-            vk::ShaderStageFlagBits::eFragment,
-            "C:/Users/yueri/Documents/Project/not-an-engine/shader/shader.frag.spv");
+    vkVertexShaderModule_ =
+            graphic::createShaderModule(device_.get(), vk::ShaderStageFlagBits::eVertex, util::vertShaderPath);
+    vkFragmentShaderModule_ =
+            graphic::createShaderModule(device_.get(), vk::ShaderStageFlagBits::eFragment, util::fragShaderPath);
 
     vkPipelineCache_ = vk::raii::PipelineCache{device_.get(), vk::PipelineCacheCreateInfo{}};
     graphicPipeline_ = graphic::createGraphicPipeline(

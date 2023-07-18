@@ -4,8 +4,12 @@
 #include <vulkan/vulkan.hpp>
 
 #include "App.hpp"
+#include "util.hpp"
 
 int main() {
+    nae::util::fragShaderPath = "C:/Users/yueri/Documents/Project/not-an-engine/shader/shader.frag.spv";
+    nae::util::vertShaderPath = "C:/Users/yueri/Documents/Project/not-an-engine/shader/shader.vert.spv";
+
     try {
         nae::App app{};
         app.run();

@@ -9,6 +9,9 @@
 
 namespace nae::util {
 
+inline std::string fragShaderPath;
+inline std::string vertShaderPath;
+
 struct VertexPC {
     float x, y, z, w; // Position
     float r, g, b, a; // Color
