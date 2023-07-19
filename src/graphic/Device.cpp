@@ -69,7 +69,8 @@ void Device::setGraphicAndPresentQueueFamilyIndex(const Surface &surface) {
     auto graphicQueueFamilyIndex = findQueueFamilyIndex(queueFamilyProperties, vk::QueueFlagBits::eGraphics);
 
     // If graphic queue family index supports present then returns it
-    if (physicalDevice_.get().getSurfaceSupportKHR(graphicQueueFamilyIndex, *surface.get())) {
+    if (physicalDevice_.get().getSurfaceSupportKHR(graphicQueueFamilyIndex, *surface.get()) &&
+        queueFamilyProperties[graphicQueueFamilyIndex].queueCount > 1) {
         graphicQueueFamilyIndex_ = graphicQueueFamilyIndex;
         presentQueueFamilyIndex_ = graphicQueueFamilyIndex;
     }
@@ -77,7 +78,8 @@ void Device::setGraphicAndPresentQueueFamilyIndex(const Surface &surface) {
     // Looks for family index that supports both graphic and presents
     for (size_t i = 0; i < queueFamilyProperties.size(); ++i) {
         if ((queueFamilyProperties[i].queueFlags & vk::QueueFlagBits::eGraphics) &&
-            physicalDevice_.get().getSurfaceSupportKHR(static_cast<uint32_t>(i), *surface.get())) {
+            physicalDevice_.get().getSurfaceSupportKHR(static_cast<uint32_t>(i), *surface.get()) &&
+            queueFamilyProperties[i].queueCount > 1) {
             graphicQueueFamilyIndex_ = static_cast<uint32_t>(i);
             presentQueueFamilyIndex_ = static_cast<uint32_t>(i);
         }
