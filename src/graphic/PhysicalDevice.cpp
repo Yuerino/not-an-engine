@@ -75,33 +75,31 @@ uint32_t PhysicalDevice::scorePhysicalDevice(const vk::raii::PhysicalDevice &phy
     return score;
 }
 
+/*!
+ * @brief Check if the physical device support queue families
+ * @param surface Surface to check if physical device has present queue family for this surface
+ * @param queueFlags The queue family flags to check
+ */
 static bool physicalDeviceSupportQueueFamily(const vk::raii::PhysicalDevice &physicalDevice,
                                              const Surface &surface,
                                              vk::QueueFlags queueFlags) {
     auto queueFamilyProperties = physicalDevice.getQueueFamilyProperties();
-    bool supportPresentQueue = false;
+    // If there's surface then check if the queue family support present for this surface
+    bool supportSurfacePresentQueue = !*surface.get();
 
     for (size_t i = 0; i < queueFamilyProperties.size(); ++i) {
-        // If flag empty then no need to check
-        if (!queueFlags) {
-            break;
-        }
-
         // Check if the queue family support one of the queue flags, if yes then remove it from flags
         if (queueFamilyProperties[i].queueFlags & queueFlags) {
             queueFlags &= ~queueFamilyProperties[i].queueFlags;
         }
 
-        // If there's surface then check if the queue family support present for this surface
-        if (!!*surface.get() && physicalDevice.getSurfaceSupportKHR(static_cast<uint32_t>(i), *surface.get())) {
-            supportPresentQueue = true;
+        if (!supportSurfacePresentQueue &&
+            physicalDevice.getSurfaceSupportKHR(static_cast<uint32_t>(i), *surface.get())) {
+            supportSurfacePresentQueue = true;
         }
     }
 
-    if (!*surface.get()) {
-        return !queueFlags;
-    }
-    return !queueFlags && supportPresentQueue;
+    return queueFlags == vk::QueueFlags{} && supportSurfacePresentQueue;
 }
 
 } // namespace nae::graphic
