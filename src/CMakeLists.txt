@@ -13,7 +13,6 @@ set(SOURCE_FILES
     graphic/Buffer.cpp
     graphic/Descriptor.cpp
     graphic/RenderPass.cpp
-    graphic/FrameBuffer.cpp
     graphic/Texture.cpp
     graphic/CommandBuffer.cpp
     graphic/Shader.cpp

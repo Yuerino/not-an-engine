@@ -4,15 +4,15 @@
 
 namespace nae::graphic {
 
-vk::raii::RenderPass createRenderPass(const vk::raii::Device &device,
-                                      vk::Format colorFormat,
-                                      vk::Format depthFormat,
-                                      vk::AttachmentLoadOp loadOp,
-                                      vk::ImageLayout colorFinalLayout) {
+RenderPass::RenderPass(const Device &device,
+                       vk::Format colorFormat,
+                       vk::Format depthFormat,
+                       vk::AttachmentLoadOp loadOp,
+                       vk::ImageLayout colorFinalLayout) {
     assert(colorFormat != vk::Format::eUndefined);
 
     std::vector<vk::AttachmentDescription> attachmentDescriptions;
-    attachmentDescriptions.emplace_back(vk::AttachmentDescriptionFlags(),
+    attachmentDescriptions.emplace_back(vk::AttachmentDescriptionFlags{},
                                         colorFormat,
                                         vk::SampleCountFlagBits::e1,
                                         loadOp,
@@ -23,7 +23,7 @@ vk::raii::RenderPass createRenderPass(const vk::raii::Device &device,
                                         colorFinalLayout);
 
     if (depthFormat != vk::Format::eUndefined) {
-        attachmentDescriptions.emplace_back(vk::AttachmentDescriptionFlags(),
+        attachmentDescriptions.emplace_back(vk::AttachmentDescriptionFlags{},
                                             depthFormat,
                                             vk::SampleCountFlagBits::e1,
                                             loadOp,
@@ -36,18 +36,22 @@ vk::raii::RenderPass createRenderPass(const vk::raii::Device &device,
 
     vk::AttachmentReference colorAttachment{0, vk::ImageLayout::eColorAttachmentOptimal};
     vk::AttachmentReference depthAttachment{1, vk::ImageLayout::eDepthStencilAttachmentOptimal};
+
     vk::SubpassDescription subPassDescription{vk::SubpassDescriptionFlags{},
                                               vk::PipelineBindPoint::eGraphics,
                                               {},
                                               colorAttachment,
                                               {},
                                               (depthFormat != vk::Format::eUndefined) ? &depthAttachment : nullptr};
+
     vk::RenderPassCreateInfo renderPassCreateInfo{vk::RenderPassCreateFlags{},
                                                   attachmentDescriptions,
                                                   subPassDescription};
-
-    return {device, renderPassCreateInfo};
+    vkRenderPass_ = vk::raii::RenderPass{device.get(), renderPassCreateInfo};
 }
 
+const vk::raii::RenderPass &RenderPass::get() const noexcept {
+    return vkRenderPass_;
+}
 
 } // namespace nae::graphic

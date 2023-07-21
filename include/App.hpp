@@ -1,5 +1,4 @@
-#ifndef NOT_AN_ENGINE_APP_HPP
-#define NOT_AN_ENGINE_APP_HPP
+#pragma once
 
 #include <vulkan/vulkan.hpp>
 
@@ -31,5 +30,3 @@ private:
 };
 
 } // namespace nae
-
-#endif // NOT_AN_ENGINE_APP_HPP

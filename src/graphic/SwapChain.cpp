@@ -8,21 +8,20 @@ SwapChain::SwapChain(const PhysicalDevice &physicalDevice,
                      const Surface &surface,
                      const Device &device,
                      vk::ImageUsageFlags usage) {
-    surfaceFormat_ = surface.pickSurfaceFormat(physicalDevice);
+    format_ = surface.pickSurfaceFormat(physicalDevice);
     vk::SurfaceCapabilitiesKHR surfaceCapabilities = physicalDevice.get().getSurfaceCapabilitiesKHR(*surface.get());
-    vk::Extent2D swapChainExtent;
 
     if (surfaceCapabilities.currentExtent.width == std::numeric_limits<uint32_t>::max()) {
         // If the surface size is undefined, the size is set to the size of the images requested.
         auto windowExtent = surface.getWindow().getExtent();
-        swapChainExtent.width = std::clamp(windowExtent.width,
-                                           surfaceCapabilities.minImageExtent.width,
-                                           surfaceCapabilities.maxImageExtent.width);
-        swapChainExtent.height = std::clamp(windowExtent.height,
-                                            surfaceCapabilities.minImageExtent.height,
-                                            surfaceCapabilities.maxImageExtent.height);
+        extent_.width = std::clamp(windowExtent.width,
+                                   surfaceCapabilities.minImageExtent.width,
+                                   surfaceCapabilities.maxImageExtent.width);
+        extent_.height = std::clamp(windowExtent.height,
+                                    surfaceCapabilities.minImageExtent.height,
+                                    surfaceCapabilities.maxImageExtent.height);
     } else {
-        swapChainExtent = surfaceCapabilities.currentExtent;
+        extent_ = surfaceCapabilities.currentExtent;
     }
 
     vk::SurfaceTransformFlagBitsKHR preTransform = (surfaceCapabilities.supportedTransforms &
@@ -49,9 +48,9 @@ SwapChain::SwapChain(const PhysicalDevice &physicalDevice,
     vk::SwapchainCreateInfoKHR swapChainCreateInfo{vk::SwapchainCreateFlagsKHR{},
                                                    *surface.get(),
                                                    minImageCount,
-                                                   surfaceFormat_.format,
-                                                   surfaceFormat_.colorSpace,
-                                                   swapChainExtent,
+                                                   format_.format,
+                                                   format_.colorSpace,
+                                                   extent_,
                                                    1,
                                                    usage,
                                                    vk::SharingMode::eExclusive,
@@ -79,7 +78,7 @@ SwapChain::SwapChain(const PhysicalDevice &physicalDevice,
     vk::ImageViewCreateInfo imageViewCreateInfo{vk::ImageViewCreateFlags{},
                                                 {},
                                                 vk::ImageViewType::e2D,
-                                                surfaceFormat_.format,
+                                                format_.format,
                                                 {vk::ComponentSwizzle::eIdentity,
                                                  vk::ComponentSwizzle::eIdentity,
                                                  vk::ComponentSwizzle::eIdentity,
@@ -92,8 +91,38 @@ SwapChain::SwapChain(const PhysicalDevice &physicalDevice,
     }
 }
 
+void SwapChain::createFrameBuffers(const Device &device,
+                                   const RenderPass &renderPass,
+                                   const vk::raii::ImageView *depthImageViewPtr) {
+    vk::ImageView attachments[2];
+    attachments[1] = depthImageViewPtr ? **depthImageViewPtr : vk::ImageView{};
+
+    vk::FramebufferCreateInfo framebufferCreateInfo{vk::FramebufferCreateFlags{},
+                                                    *renderPass.get(),
+                                                    static_cast<uint32_t>(depthImageViewPtr ? 2 : 1),
+                                                    attachments,
+                                                    extent_.width,
+                                                    extent_.height,
+                                                    1};
+
+    frameBuffers_.clear();
+    frameBuffers_.reserve(imageViews_.size());
+    for (const auto &imageView: imageViews_) {
+        attachments[0] = *imageView;
+        frameBuffers_.emplace_back(device.get(), framebufferCreateInfo);
+    }
+}
+
 const vk::raii::SwapchainKHR &SwapChain::get() const noexcept {
     return vkSwapChain_;
+}
+
+const vk::SurfaceFormatKHR &SwapChain::getFormat() const noexcept {
+    return format_;
+}
+
+const vk::Extent2D &SwapChain::getExtent() const noexcept {
+    return extent_;
 }
 
 const std::vector<vk::Image> &SwapChain::getImages() const noexcept {
@@ -102,6 +131,10 @@ const std::vector<vk::Image> &SwapChain::getImages() const noexcept {
 
 const std::vector<vk::raii::ImageView> &SwapChain::getImageViews() const noexcept {
     return imageViews_;
+}
+
+const std::vector<vk::raii::Framebuffer> &SwapChain::getFrameBuffers() const noexcept {
+    return frameBuffers_;
 }
 
 } // namespace nae::graphic

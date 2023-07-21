@@ -4,11 +4,15 @@
 
 namespace nae::graphic {
 
-vk::raii::ShaderModule
-createShaderModule(const vk::raii::Device &device, vk::ShaderStageFlagBits shaderStage, const std::string &shaderPath) {
+ShaderModule::ShaderModule(const Device &device, const std::string &shaderPath) {
     auto shaderCode = util::readFile(shaderPath);
-    return {device,
+    vkShaderModule_ = vk::raii::ShaderModule{
+            device.get(),
             {vk::ShaderModuleCreateFlags{}, shaderCode.size(), reinterpret_cast<const uint32_t *>(shaderCode.data())}};
+}
+
+const vk::raii::ShaderModule &ShaderModule::get() const noexcept {
+    return vkShaderModule_;
 }
 
 } // namespace nae::graphic

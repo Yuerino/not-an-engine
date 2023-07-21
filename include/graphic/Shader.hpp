@@ -1,13 +1,25 @@
-#ifndef NOT_AN_ENGINE_GRAPHIC_SHADER_HPP
-#define NOT_AN_ENGINE_GRAPHIC_SHADER_HPP
+#pragma once
 
 #include <vulkan/vulkan_raii.hpp>
 
+#include "graphic/Device.hpp"
+
 namespace nae::graphic {
 
-[[nodiscard]] vk::raii::ShaderModule
-createShaderModule(const vk::raii::Device &device, vk::ShaderStageFlagBits shaderStage, const std::string &shaderPath);
+class ShaderModule {
+public:
+    ShaderModule(const Device &device, const std::string &shaderPath);
+    explicit ShaderModule(std::nullptr_t) {}
+
+    ShaderModule(const ShaderModule &) = delete;
+    ShaderModule &operator=(const ShaderModule &) = delete;
+    ShaderModule(ShaderModule &&) noexcept = default;
+    ShaderModule &operator=(ShaderModule &&) noexcept = default;
+
+    [[nodiscard]] const vk::raii::ShaderModule &get() const noexcept;
+
+private:
+    vk::raii::ShaderModule vkShaderModule_{nullptr};
+};
 
 } // namespace nae::graphic
-
-#endif // NOT_AN_ENGINE_GRAPHIC_SHADER_HPP

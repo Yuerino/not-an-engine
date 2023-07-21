@@ -2,87 +2,87 @@
 
 namespace nae::graphic {
 
-vk::raii::Pipeline
-createGraphicPipeline(const vk::raii::Device &device,
-                      const vk::raii::PipelineCache &pipelineCache,
-                      const vk::raii::ShaderModule &vertexShaderModule,
-                      const vk::SpecializationInfo *vertexShaderSpecializationInfo,
-                      const vk::raii::ShaderModule &fragmentShaderModule,
-                      const vk::SpecializationInfo *fragmentShaderSpecializationInfo,
-                      uint32_t vertexStride,
-                      const std::vector<std::pair<vk::Format, uint32_t>> &vertexInputAttributeFormatOffset,
-                      vk::FrontFace frontFace,
-                      bool depthBuffered,
-                      const vk::raii::PipelineLayout &pipelineLayout,
-                      const vk::raii::RenderPass &renderPass) {
+Pipeline::Pipeline(const Device &device,
+                   std::shared_ptr<SwapChain> pSwapChain,
+                   const std::string &vertexShaderPath,
+                   const std::string &fragmentShaderPath)
+    : pSwapChain_{std::move(pSwapChain)} {
+    // Shader
+    vertexShaderModule_ = ShaderModule{device, vertexShaderPath};
+    fragmentShaderModule_ = ShaderModule{device, fragmentShaderPath};
     std::array<vk::PipelineShaderStageCreateInfo, 2> pipelineShaderStageCreateInfos = {
             vk::PipelineShaderStageCreateInfo{vk::PipelineShaderStageCreateFlags{},
                                               vk::ShaderStageFlagBits::eVertex,
-                                              *vertexShaderModule,
+                                              *vertexShaderModule_.get(),
                                               "main",
-                                              vertexShaderSpecializationInfo},
+                                              nullptr},
             vk::PipelineShaderStageCreateInfo{vk::PipelineShaderStageCreateFlags{},
                                               vk::ShaderStageFlagBits::eFragment,
-                                              *fragmentShaderModule,
+                                              *fragmentShaderModule_.get(),
                                               "main",
-                                              fragmentShaderSpecializationInfo}};
+                                              nullptr}};
 
-    std::vector<vk::VertexInputAttributeDescription> vertexInputAttributeDescriptions;
-    vk::PipelineVertexInputStateCreateInfo pipelineVertexInputStateCreateInfo;
-    vk::VertexInputBindingDescription vertexInputBindingDescription{0, vertexStride};
+    // Vertex input empty for now because hard coded in shader
+    vk::PipelineVertexInputStateCreateInfo pipelineVertexInputStateCreateInfo{vk::PipelineVertexInputStateCreateFlags{},
+                                                                              0,
+                                                                              nullptr,
+                                                                              0,
+                                                                              nullptr};
 
-    if (0 < vertexStride) {
-        vertexInputAttributeDescriptions.reserve(vertexInputAttributeFormatOffset.size());
-        for (uint32_t i = 0; i < vertexInputAttributeFormatOffset.size(); ++i) {
-            vertexInputAttributeDescriptions.emplace_back(i,
-                                                          0,
-                                                          vertexInputAttributeFormatOffset[i].first,
-                                                          vertexInputAttributeFormatOffset[i].second);
-        }
-        pipelineVertexInputStateCreateInfo.setVertexBindingDescriptions(vertexInputBindingDescription);
-        pipelineVertexInputStateCreateInfo.setVertexAttributeDescriptions(vertexInputAttributeDescriptions);
-    }
-
+    // Input assembly
     vk::PipelineInputAssemblyStateCreateInfo pipelineInputAssemblyStateCreateInfo{
             vk::PipelineInputAssemblyStateCreateFlags{},
             vk::PrimitiveTopology::eTriangleList};
 
+    // Viewport
     vk::PipelineViewportStateCreateInfo pipelineViewportStateCreateInfo{vk::PipelineViewportStateCreateFlags{},
                                                                         1,
                                                                         nullptr,
                                                                         1,
                                                                         nullptr};
+    std::array<vk::DynamicState, 2> dynamicStates = {vk::DynamicState::eViewport, vk::DynamicState::eScissor};
+    vk::PipelineDynamicStateCreateInfo pipelineDynamicStateCreateInfo{vk::PipelineDynamicStateCreateFlags{},
+                                                                      dynamicStates};
 
+    // Rasterizer
     vk::PipelineRasterizationStateCreateInfo pipelineRasterizationStateCreateInfo{
             vk::PipelineRasterizationStateCreateFlags{},
             false,
             false,
             vk::PolygonMode::eFill,
             vk::CullModeFlagBits::eBack,
-            frontFace,
+            vk::FrontFace::eClockwise,
             false,
             0.0f,
             0.0f,
             0.0f,
             1.0f};
 
+    // Multisampling
     vk::PipelineMultisampleStateCreateInfo pipelineMultisampleStateCreateInfo{vk::PipelineMultisampleStateCreateFlags{},
-                                                                              vk::SampleCountFlagBits::e1};
+                                                                              vk::SampleCountFlagBits::e1,
+                                                                              false,
+                                                                              1.0f,
+                                                                              nullptr,
+                                                                              false,
+                                                                              false};
 
+    // Depth and stencil
     vk::StencilOpState stencilOpState{vk::StencilOp::eKeep,
                                       vk::StencilOp::eKeep,
                                       vk::StencilOp::eKeep,
                                       vk::CompareOp::eAlways};
     vk::PipelineDepthStencilStateCreateInfo pipelineDepthStencilStateCreateInfo{
             vk::PipelineDepthStencilStateCreateFlags{},
-            depthBuffered,
-            depthBuffered,
+            true,
+            true,
             vk::CompareOp::eLessOrEqual,
             false,
             false,
             stencilOpState,
             stencilOpState};
 
+    // Color blending disable for now
     vk::ColorComponentFlags colorComponentFlags{vk::ColorComponentFlagBits::eR | vk::ColorComponentFlagBits::eG |
                                                 vk::ColorComponentFlagBits::eB | vk::ColorComponentFlagBits::eA};
     vk::PipelineColorBlendAttachmentState pipelineColorBlendAttachmentState{false,
@@ -97,12 +97,19 @@ createGraphicPipeline(const vk::raii::Device &device,
                                                                             false,
                                                                             vk::LogicOp::eNoOp,
                                                                             pipelineColorBlendAttachmentState,
-                                                                            {{1.0f, 1.0f, 1.0f, 1.0f}}};
+                                                                            {{0.0f, 0.0f, 0.0f, 0.0f}}};
 
-    std::array<vk::DynamicState, 2> dynamicStates = {vk::DynamicState::eViewport, vk::DynamicState::eScissor};
-    vk::PipelineDynamicStateCreateInfo pipelineDynamicStateCreateInfo{vk::PipelineDynamicStateCreateFlags{},
-                                                                      dynamicStates};
+    // Pipeline layout
+    vk::PipelineLayoutCreateInfo pipelineLayoutCreateInfo{vk::PipelineLayoutCreateFlags{}, 0, nullptr, 0, nullptr};
+    vkPipelineLayout_ = vk::raii::PipelineLayout{device.get(), pipelineLayoutCreateInfo};
 
+    // Pipeline cache
+    vkPipelineCache_ = vk::raii::PipelineCache{device.get(), vk::PipelineCacheCreateInfo{}};
+
+    // Renderpass
+    renderPass_ = RenderPass{device, pSwapChain_->getFormat().format, vk::Format::eUndefined};
+
+    // Pipeline
     vk::GraphicsPipelineCreateInfo graphicsPipelineCreateInfo{vk::PipelineCreateFlags{},
                                                               pipelineShaderStageCreateInfos,
                                                               &pipelineVertexInputStateCreateInfo,
@@ -114,10 +121,21 @@ createGraphicPipeline(const vk::raii::Device &device,
                                                               &pipelineDepthStencilStateCreateInfo,
                                                               &pipelineColorBlendStateCreateInfo,
                                                               &pipelineDynamicStateCreateInfo,
-                                                              *pipelineLayout,
-                                                              *renderPass};
+                                                              *vkPipelineLayout_,
+                                                              *renderPass_.get(),
+                                                              0};
+    vkPipeline_ = vk::raii::Pipeline{device.get(), vkPipelineCache_, graphicsPipelineCreateInfo};
 
-    return {device, pipelineCache, graphicsPipelineCreateInfo};
+    // FrameBuffers
+    pSwapChain_->createFrameBuffers(device, renderPass_);
+}
+
+const vk::raii::Pipeline &Pipeline::get() const noexcept {
+    return vkPipeline_;
+}
+
+const RenderPass &Pipeline::getRenderPass() const noexcept {
+    return renderPass_;
 }
 
 } // namespace nae::graphic
