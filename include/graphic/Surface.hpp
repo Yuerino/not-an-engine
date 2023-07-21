@@ -22,7 +22,10 @@ public:
 
     [[nodiscard]] vk::SurfaceFormatKHR pickSurfaceFormat(const PhysicalDevice &physicalDevice) const;
 
+    [[nodiscard]] vk::PresentModeKHR pickPresentMode(const PhysicalDevice &physicalDevice) const;
+
     [[nodiscard]] const vk::raii::SurfaceKHR &get() const noexcept;
+    [[nodiscard]] const ::nae::Window &getWindow() const noexcept;
 
 private:
     const Window &window_;

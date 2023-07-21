@@ -9,8 +9,6 @@
 namespace nae {
 
 class Window {
-    friend class Graphic;
-
 public:
     Window(vk::Extent2D extent, std::string title);
     ~Window();
@@ -23,6 +21,8 @@ public:
     void createVulkanSurface(const VkInstance &vkInstance,
                              const VkAllocationCallbacks *allocator,
                              VkSurfaceKHR *surface) const;
+
+    [[nodiscard]] const vk::Extent2D &getExtent() const noexcept;
 
 private:
     GLFWwindow *glfwWindow_;

@@ -18,26 +18,22 @@ Graphic::Graphic(const Window &window)
       instance_{{}, graphic::Instance::getGlfwRequiredExtensions()},
       surface_{instance_, window_},
       physicalDevice_{instance_, surface_, {VK_KHR_SWAPCHAIN_EXTENSION_NAME}},
-      device_{physicalDevice_, surface_} {
+      device_{physicalDevice_, surface_},
+      pSwapChain_{std::make_unique<graphic::SwapChain>(
+              physicalDevice_,
+              surface_,
+              device_,
+              vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eTransferSrc)} {
     vkCommandPool_ = vk::raii::CommandPool{device_.get(),
                                            vk::CommandPoolCreateInfo{vk::CommandPoolCreateFlagBits::eResetCommandBuffer,
                                                                      device_.getGraphicQueueFamilyIndex()}};
     vkCommandBuffer_ = graphic::createCommandBuffer(device_.get(), vkCommandPool_);
 
-    SwapChainDataPtr_ = std::make_unique<graphic::SwapChainData>(
-            physicalDevice_,
-            surface_,
-            device_.get(),
-            window_.extent_,
-            vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eTransferSrc,
-            device_.getGraphicQueueFamilyIndex(),
-            device_.getPresentQueueFamilyIndex());
-
-    depthBufferData_ = graphic::DepthBufferData{device_, vk::Format::eD16Unorm, window_.extent_};
+    depthBufferData_ = graphic::DepthBufferData{device_, vk::Format::eD16Unorm, window_.getExtent()};
 
     uniformBufferData_ = graphic::BufferData(device_, sizeof(glm::mat4x4), vk::BufferUsageFlagBits::eUniformBuffer);
 
-    modelMatrix_ = util::createModelViewProjectionClipMatrix(window_.extent_);
+    modelMatrix_ = util::createModelViewProjectionClipMatrix(window_.getExtent());
     graphic::copyToDevice(uniformBufferData_.deviceMemory_, modelMatrix_);
 
     vkDescriptorSetLayout_ = graphic::createDescriptorSetLayout(
@@ -51,9 +47,9 @@ Graphic::Graphic(const Window &window)
 
     frameBuffers_ = graphic::createFrameBuffers(device_.get(),
                                                 vkRenderPass_,
-                                                SwapChainDataPtr_->imageViews_,
+                                                pSwapChain_->getImageViews(),
                                                 &depthBufferData_.imageView_,
-                                                window_.extent_);
+                                                window_.getExtent());
 
     vertexBufferData_ =
             graphic::BufferData(device_, sizeof(util::coloredCubeData), vk::BufferUsageFlagBits::eVertexBuffer);
@@ -96,9 +92,9 @@ void Graphic::Update() {
 
     vk::Result result;
     uint32_t imageIndex;
-    std::tie(result, imageIndex) = SwapChainDataPtr_->vkSwapChain_.acquireNextImage(100000000, *imageAcquiredSemaphore);
+    std::tie(result, imageIndex) = pSwapChain_->get().acquireNextImage(100000000, *imageAcquiredSemaphore);
     assert(result == vk::Result::eSuccess);
-    assert(imageIndex < SwapChainDataPtr_->images_.size());
+    assert(imageIndex < pSwapChain_->getImageViews().size());
 
     vkCommandBuffer_.begin({});
 
@@ -107,7 +103,7 @@ void Graphic::Update() {
     clearValues[1].depthStencil = vk::ClearDepthStencilValue{1.0f, 0};
     vk::RenderPassBeginInfo renderPassBeginInfo{*vkRenderPass_,
                                                 *frameBuffers_[imageIndex],
-                                                vk::Rect2D{vk::Offset2D{0, 0}, window_.extent_},
+                                                vk::Rect2D{vk::Offset2D{0, 0}, window_.getExtent()},
                                                 clearValues};
     vkCommandBuffer_.beginRenderPass(renderPassBeginInfo, vk::SubpassContents::eInline);
     vkCommandBuffer_.bindPipeline(vk::PipelineBindPoint::eGraphics, *graphicPipeline_);
@@ -121,11 +117,11 @@ void Graphic::Update() {
     vkCommandBuffer_.setViewport(0,
                                  vk::Viewport{0.0f,
                                               0.0f,
-                                              static_cast<float>(window_.extent_.width),
-                                              static_cast<float>(window_.extent_.height),
+                                              static_cast<float>(window_.getExtent().width),
+                                              static_cast<float>(window_.getExtent().height),
                                               0.0f,
                                               1.0f});
-    vkCommandBuffer_.setScissor(0, vk::Rect2D{vk::Offset2D{0, 0}, window_.extent_});
+    vkCommandBuffer_.setScissor(0, vk::Rect2D{vk::Offset2D{0, 0}, window_.getExtent()});
 
     vkCommandBuffer_.draw(12 * 3, 1, 0, 0);
     vkCommandBuffer_.endRenderPass();
@@ -140,7 +136,7 @@ void Graphic::Update() {
     while (vk::Result::eTimeout == device_.get().waitForFences({*drawFence}, VK_TRUE, 100000000))
         ;
 
-    vk::PresentInfoKHR presentInfoKHR{nullptr, *SwapChainDataPtr_->vkSwapChain_, imageIndex};
+    vk::PresentInfoKHR presentInfoKHR{nullptr, *pSwapChain_->get(), imageIndex};
     result = device_.getPresentQueue().presentKHR(presentInfoKHR);
     switch (result) {
         case vk::Result::eSuccess:

@@ -34,9 +34,10 @@ private:
     graphic::Surface surface_;
     graphic::PhysicalDevice physicalDevice_;
     graphic::Device device_;
+    std::unique_ptr<graphic::SwapChain> pSwapChain_;
+
     vk::raii::CommandPool vkCommandPool_{nullptr};
     vk::raii::CommandBuffer vkCommandBuffer_{nullptr};
-    std::unique_ptr<graphic::SwapChainData> SwapChainDataPtr_;
     graphic::DepthBufferData depthBufferData_{nullptr};
     graphic::BufferData uniformBufferData_{nullptr};
     glm::mat4x4 modelMatrix_{};

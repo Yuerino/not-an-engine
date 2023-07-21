@@ -1,42 +1,35 @@
-#ifndef NOT_AN_ENGINE_GRAPHIC_SWAPCHAIN_HPP
-#define NOT_AN_ENGINE_GRAPHIC_SWAPCHAIN_HPP
+#pragma once
 
 #include <vector>
 
 #include <vulkan/vulkan.hpp>
 #include <vulkan/vulkan_raii.hpp>
 
+#include "graphic/Device.hpp"
 #include "graphic/PhysicalDevice.hpp"
 #include "graphic/Surface.hpp"
 
-namespace nae {
-class Graphic;
-}
-
 namespace nae::graphic {
 
-class SwapChainData {
-    friend class nae::Graphic;
-
+class SwapChain {
 public:
-    SwapChainData(const PhysicalDevice &physicalDevice,
-                  const Surface &surface,
-                  const vk::raii::Device &device,
-                  const vk::Extent2D &windowExtent,
-                  vk::ImageUsageFlags usage,
-                  uint32_t graphicsQueueFamilyIndex,
-                  uint32_t presentQueueFamilyIndex);
+    SwapChain(const PhysicalDevice &physicalDevice,
+              const Surface &surface,
+              const Device &device,
+              vk::ImageUsageFlags usage);
 
-    SwapChainData(const SwapChainData &) = delete;
-    SwapChainData &operator=(const SwapChainData &) = delete;
+    SwapChain(const SwapChain &) = delete;
+    SwapChain &operator=(const SwapChain &) = delete;
+
+    [[nodiscard]] const vk::raii::SwapchainKHR &get() const noexcept;
+    [[nodiscard]] const std::vector<vk::Image> &getImages() const noexcept;
+    [[nodiscard]] const std::vector<vk::raii::ImageView> &getImageViews() const noexcept;
 
 private:
-    vk::raii::SwapchainKHR vkSwapChain_ = nullptr;
-    vk::Format colorFormat_;
+    vk::raii::SwapchainKHR vkSwapChain_{nullptr};
+    vk::SurfaceFormatKHR surfaceFormat_;
     std::vector<vk::Image> images_;
     std::vector<vk::raii::ImageView> imageViews_;
 };
 
 } // namespace nae::graphic
-
-#endif // NOT_AN_ENGINE_GRAPHIC_SWAPCHAIN_HPP

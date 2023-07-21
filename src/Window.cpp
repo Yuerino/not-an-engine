@@ -42,4 +42,8 @@ void Window::createVulkanSurface(const VkInstance &vkInstance,
     }
 }
 
+const vk::Extent2D &Window::getExtent() const noexcept {
+    return extent_;
+}
+
 } // namespace nae
