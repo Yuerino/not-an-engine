@@ -60,7 +60,7 @@ void Instance::gatherLayers(const std::vector<std::string> &layers,
         assert(std::any_of(
                 layerProperties.begin(),
                 layerProperties.end(),
-                [&layer](const vk::LayerProperties &layerProperty) { return layerProperty.layerName == layer; }));
+                [&layer](const vk::LayerProperties &layerProperty) { return layer == layerProperty.layerName; }));
         enabledLayers_.emplace_back(layer.c_str());
     }
 
@@ -88,7 +88,7 @@ void Instance::gatherExtensions(const std::vector<std::string> &extensions,
         assert(std::any_of(extensionProperties.begin(),
                            extensionProperties.end(),
                            [&extension](const vk::ExtensionProperties &extensionProperty) {
-                               return extensionProperty.extensionName == extension;
+                               return extension == extensionProperty.extensionName;
                            }));
         enabledExtensions_.emplace_back(extension.c_str());
     }

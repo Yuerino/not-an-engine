@@ -55,7 +55,7 @@ uint32_t PhysicalDevice::scorePhysicalDevice(const vk::raii::PhysicalDevice &phy
         if (std::none_of(extensionProperties.begin(),
                          extensionProperties.end(),
                          [&extension](const auto &extensionProperty) {
-                             return extensionProperty.extensionName == extension;
+                             return extension == extensionProperty.extensionName;
                          })) {
             return 0;
         }

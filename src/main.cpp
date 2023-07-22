@@ -7,8 +7,13 @@
 #include "util.hpp"
 
 int main() {
+#ifdef __linux__
+    nae::util::fragShaderPath = "/home/yuerino/project/not-an-engine/shader/shader.frag.spv";
+    nae::util::vertShaderPath = "/home/yuerino/project/not-an-engine/shader/shader.vert.spv";
+#elif _WIN32
     nae::util::fragShaderPath = "C:/Users/yueri/Documents/Project/not-an-engine/shader/shader.frag.spv";
     nae::util::vertShaderPath = "C:/Users/yueri/Documents/Project/not-an-engine/shader/shader.vert.spv";
+#endif
 
     try {
         nae::App app{};
