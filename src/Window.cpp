@@ -12,7 +12,7 @@ Window::Window(vk::Extent2D extent, std::string title) : extent_{extent}, title_
     }
 
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-    glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
+    glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
 
     glfwWindow_ = glfwWrapper([&]() {
         return glfwCreateWindow(static_cast<int>(extent_.width),
@@ -22,6 +22,8 @@ Window::Window(vk::Extent2D extent, std::string title) : extent_{extent}, title_
                                 nullptr);
     });
     assert(glfwWindow_ != nullptr);
+    glfwWrapper([&]() { glfwSetWindowUserPointer(glfwWindow_, this); });
+    glfwWrapper([&]() { glfwSetFramebufferSizeCallback(glfwWindow_, framebufferResizeCallback); });
 }
 
 Window::~Window() {
@@ -44,6 +46,21 @@ void Window::createVulkanSurface(const VkInstance &vkInstance,
 
 const vk::Extent2D &Window::getExtent() const noexcept {
     return extent_;
+}
+
+bool Window::isFramebufferResized() const noexcept {
+    return framebufferResized_;
+}
+
+void Window::resetFramebufferResized() noexcept {
+    framebufferResized_ = false;
+}
+
+void Window::framebufferResizeCallback(GLFWwindow *glfwWindow, int width, int height) {
+    auto *window = static_cast<Window *>(glfwGetWindowUserPointer(glfwWindow));
+    window->extent_.width = static_cast<uint32_t>(width);
+    window->extent_.height = static_cast<uint32_t>(height);
+    window->framebufferResized_ = true;
 }
 
 } // namespace nae

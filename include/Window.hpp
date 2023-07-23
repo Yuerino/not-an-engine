@@ -23,11 +23,16 @@ public:
                              VkSurfaceKHR *surface) const;
 
     [[nodiscard]] const vk::Extent2D &getExtent() const noexcept;
+    [[nodiscard]] bool isFramebufferResized() const noexcept;
+    void resetFramebufferResized() noexcept;
 
 private:
+    static void framebufferResizeCallback(GLFWwindow *glfwWindow, int width, int height);
+
     GLFWwindow *glfwWindow_;
     vk::Extent2D extent_;
     std::string title_;
+    bool framebufferResized_ = false;
 };
 
 } // namespace nae

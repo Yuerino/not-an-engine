@@ -3,10 +3,9 @@
 namespace nae::graphic {
 
 Pipeline::Pipeline(const Device &device,
-                   std::shared_ptr<SwapChain> pSwapChain,
+                   const SwapChain &swapChain,
                    const std::string &vertexShaderPath,
-                   const std::string &fragmentShaderPath)
-    : pSwapChain_{std::move(pSwapChain)} {
+                   const std::string &fragmentShaderPath) {
     // Shader
     vertexShaderModule_ = ShaderModule{device, vertexShaderPath};
     fragmentShaderModule_ = ShaderModule{device, fragmentShaderPath};
@@ -107,7 +106,7 @@ Pipeline::Pipeline(const Device &device,
     vkPipelineCache_ = vk::raii::PipelineCache{device.get(), vk::PipelineCacheCreateInfo{}};
 
     // Renderpass
-    renderPass_ = RenderPass{device, pSwapChain_->getFormat().format, vk::Format::eUndefined};
+    renderPass_ = RenderPass{device, swapChain.getFormat().format, vk::Format::eUndefined};
 
     // Pipeline
     vk::GraphicsPipelineCreateInfo graphicsPipelineCreateInfo{vk::PipelineCreateFlags{},
@@ -125,9 +124,6 @@ Pipeline::Pipeline(const Device &device,
                                                               *renderPass_.get(),
                                                               0};
     vkPipeline_ = vk::raii::Pipeline{device.get(), vkPipelineCache_, graphicsPipelineCreateInfo};
-
-    // FrameBuffers
-    pSwapChain_->createFrameBuffers(device, renderPass_);
 }
 
 const vk::raii::Pipeline &Pipeline::get() const noexcept {

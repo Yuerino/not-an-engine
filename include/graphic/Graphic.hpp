@@ -20,7 +20,7 @@ namespace nae {
 
 class Graphic {
 public:
-    explicit Graphic(const Window &window);
+    explicit Graphic(Window &window);
     ~Graphic();
 
     Graphic(const Graphic &) = delete;
@@ -29,15 +29,17 @@ public:
     void Update();
 
 private:
+    void recreateSwapChain();
+
     const uint32_t MAX_FRAMES_IN_FLIGHT = 2;
     uint32_t currentFrame_ = 0;
-    const Window &window_;
+    Window &window_;
 
     graphic::Instance instance_;
     graphic::Surface surface_;
     graphic::PhysicalDevice physicalDevice_;
     graphic::Device device_;
-    std::shared_ptr<graphic::SwapChain> pSwapChain_;
+    std::unique_ptr<graphic::SwapChain> pSwapChain_;
     graphic::Pipeline pipeline_;
 
     vk::raii::CommandPool vkCommandPool_{nullptr};

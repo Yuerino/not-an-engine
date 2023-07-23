@@ -2,29 +2,32 @@
 
 #include <iostream>
 
+#include "GlfwApi.hpp"
 #include "graphic/CommandBuffer.hpp"
 #include "util.hpp"
 
 namespace nae {
 
-Graphic::Graphic(const Window &window)
+Graphic::Graphic(Window &window)
     : window_(window),
       instance_{{}, graphic::Instance::getGlfwRequiredExtensions()},
       surface_{instance_, window_},
       physicalDevice_{instance_, surface_, {VK_KHR_SWAPCHAIN_EXTENSION_NAME}},
       device_{physicalDevice_, surface_},
-      pSwapChain_{std::make_shared<graphic::SwapChain>(
+      pSwapChain_{std::make_unique<graphic::SwapChain>(
               physicalDevice_,
               surface_,
               device_,
               vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eTransferSrc)},
-      pipeline_{device_, pSwapChain_, util::vertShaderPath, util::fragShaderPath},
+      pipeline_{device_, *pSwapChain_, util::vertShaderPath, util::fragShaderPath},
       vkCommandPool_{device_.get(),
                      vk::CommandPoolCreateInfo{vk::CommandPoolCreateFlagBits::eResetCommandBuffer,
                                                device_.getGraphicQueueFamilyIndex()}},
       vkCommandBuffers_{
               device_.get(),
               vk::CommandBufferAllocateInfo{*vkCommandPool_, vk::CommandBufferLevel::ePrimary, MAX_FRAMES_IN_FLIGHT}} {
+    pSwapChain_->createFrameBuffers(device_, pipeline_.getRenderPass());
+
     imageAcquiredSemaphores_.reserve(MAX_FRAMES_IN_FLIGHT);
     renderFinishedSemaphores_.reserve(MAX_FRAMES_IN_FLIGHT);
     drawFences_.reserve(MAX_FRAMES_IN_FLIGHT);
@@ -35,14 +38,22 @@ Graphic::Graphic(const Window &window)
     }
 }
 
+Graphic::~Graphic() {
+    device_.get().waitIdle();
+}
+
 void Graphic::Update() {
     // Acquire next image
     vk::Result result;
     uint32_t imageIndex;
     std::tie(result, imageIndex) = pSwapChain_->get().acquireNextImage(std::numeric_limits<uint64_t>::max(),
                                                                        *imageAcquiredSemaphores_[currentFrame_]);
-    assert(result == vk::Result::eSuccess);
-    assert(imageIndex < pSwapChain_->getImageViews().size());
+    if (result == vk::Result::eErrorOutOfDateKHR) {
+        recreateSwapChain();
+        return;
+    } else if (result != vk::Result::eSuccess && result != vk::Result::eSuboptimalKHR) {
+        throw std::runtime_error("failed to acquire swap chain image!");
+    }
 
     // Command buffer begin
     vkCommandBuffers_[currentFrame_].reset(vk::CommandBufferResetFlags{});
@@ -95,21 +106,33 @@ void Graphic::Update() {
     // Submit acquired image to present queue
     vk::PresentInfoKHR presentInfo{*renderFinishedSemaphores_[currentFrame_], *pSwapChain_->get(), imageIndex};
     result = device_.getPresentQueue().presentKHR(presentInfo);
-    switch (result) {
-        case vk::Result::eSuccess:
-            break;
-        case vk::Result::eSuboptimalKHR:
-            std::cout << "vk::Queue::presentKHR returned vk::Result::eSuboptimalKHR !\n";
-            break;
-        default:
-            assert(false);
+    if (result == vk::Result::eErrorOutOfDateKHR || result == vk::Result::eSuboptimalKHR ||
+        window_.isFramebufferResized()) {
+        recreateSwapChain();
+        window_.resetFramebufferResized();
+        return;
+    } else if (result != vk::Result::eSuccess) {
+        throw std::runtime_error("failed to present swap chain image!");
     }
 
     currentFrame_ = (currentFrame_ + 1) % MAX_FRAMES_IN_FLIGHT;
 }
 
-Graphic::~Graphic() {
+void Graphic::recreateSwapChain() {
+    auto windowExtent = window_.getExtent();
+    while (windowExtent.width == 0 || windowExtent.height == 0) {
+        windowExtent = window_.getExtent();
+        glfwWrapper([]() { glfwWaitEvents(); });
+    }
+
     device_.get().waitIdle();
+
+    pSwapChain_ = std::make_unique<graphic::SwapChain>(
+            physicalDevice_,
+            surface_,
+            device_,
+            vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eTransferSrc);
+    pSwapChain_->createFrameBuffers(device_, pipeline_.getRenderPass());
 }
 
 } // namespace nae

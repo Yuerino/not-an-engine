@@ -12,7 +12,7 @@ namespace nae::graphic {
 class Pipeline {
 public:
     Pipeline(const Device &device,
-             std::shared_ptr<SwapChain> pSwapChain,
+             const SwapChain &swapChain,
              const std::string &vertexShaderPath,
              const std::string &fragmentShaderPath);
 
@@ -23,8 +23,6 @@ public:
     [[nodiscard]] const RenderPass &getRenderPass() const noexcept;
 
 private:
-    std::shared_ptr<SwapChain> pSwapChain_;
-
     ShaderModule vertexShaderModule_{nullptr};
     ShaderModule fragmentShaderModule_{nullptr};
 

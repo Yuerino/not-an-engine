@@ -37,6 +37,12 @@ add_dependencies(not-an-engine nae-shaders)
 #    $<$<CXX_COMPILER_ID:MSVC>:/W4 /WX>
 #    $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-Wall -Wextra -Wpedantic -Werror>)
 
+#target_link_options(not-an-engine PRIVATE
+#    -fsanitize=address)
+#
+#target_compile_options(not-an-engine PRIVATE
+#    -fsanitize=address)
+
 target_compile_definitions(not-an-engine
     PUBLIC
     GLM_FORCE_RADIANS
