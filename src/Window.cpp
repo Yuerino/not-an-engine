@@ -31,8 +31,7 @@ Window::~Window() {
 }
 
 bool Window::shouldClose() const noexcept {
-    return static_cast<bool>(
-            glfwWrapper([&glfwWindow_ = glfwWindow_]() { return glfwWindowShouldClose(glfwWindow_); }));
+    return static_cast<bool>(glfwWrapper([&]() { return glfwWindowShouldClose(glfwWindow_); }));
 }
 
 void Window::createVulkanSurface(const VkInstance &vkInstance,

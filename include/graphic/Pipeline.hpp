@@ -15,9 +15,12 @@ public:
              const SwapChain &swapChain,
              const std::string &vertexShaderPath,
              const std::string &fragmentShaderPath);
+    ~Pipeline() = default;
 
     Pipeline(const Pipeline &) = delete;
     Pipeline &operator=(const Pipeline &) = delete;
+    Pipeline(Pipeline &&) = default;
+    Pipeline &operator=(Pipeline &&) = default;
 
     [[nodiscard]] const vk::raii::Pipeline &get() const noexcept;
     [[nodiscard]] const RenderPass &getRenderPass() const noexcept;

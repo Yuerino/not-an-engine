@@ -3,6 +3,7 @@
 #include <iostream>
 
 #include "GlfwApi.hpp"
+#include "graphic/Buffer.hpp"
 #include "graphic/CommandBuffer.hpp"
 #include "util.hpp"
 
@@ -28,6 +29,14 @@ Graphic::Graphic(Window &window)
               vk::CommandBufferAllocateInfo{*vkCommandPool_, vk::CommandBufferLevel::ePrimary, MAX_FRAMES_IN_FLIGHT}} {
     pSwapChain_->createFrameBuffers(device_, pipeline_.getRenderPass());
 
+    const std::vector<graphic::Vertex> vertices = {{{0.0f, -0.5f}, {1.0f, 0.0f, 0.0f}},
+                                                   {{0.5f, 0.5f}, {0.0f, 1.0f, 0.0f}},
+                                                   {{-0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}}};
+    pVertexBuffer_ = std::make_unique<graphic::Buffer>(device_,
+                                                       sizeof(graphic::Vertex) * vertices.size(),
+                                                       vk::BufferUsageFlagBits::eVertexBuffer);
+    pVertexBuffer_->mapMemory(vertices.data(), vertices.size());
+
     imageAcquiredSemaphores_.reserve(MAX_FRAMES_IN_FLIGHT);
     renderFinishedSemaphores_.reserve(MAX_FRAMES_IN_FLIGHT);
     drawFences_.reserve(MAX_FRAMES_IN_FLIGHT);
@@ -44,14 +53,15 @@ Graphic::~Graphic() {
 
 void Graphic::Update() {
     // Acquire next image
-    vk::Result result;
-    uint32_t imageIndex;
+    vk::Result result{};
+    uint32_t imageIndex = 0;
     std::tie(result, imageIndex) = pSwapChain_->get().acquireNextImage(std::numeric_limits<uint64_t>::max(),
                                                                        *imageAcquiredSemaphores_[currentFrame_]);
     if (result == vk::Result::eErrorOutOfDateKHR) {
         recreateSwapChain();
         return;
-    } else if (result != vk::Result::eSuccess && result != vk::Result::eSuboptimalKHR) {
+    }
+    if (result != vk::Result::eSuccess && result != vk::Result::eSuboptimalKHR) {
         throw std::runtime_error("failed to acquire swap chain image!");
     }
 
@@ -79,6 +89,9 @@ void Graphic::Update() {
     vkCommandBuffers_[currentFrame_].setViewport(0, viewPort);
     vkCommandBuffers_[currentFrame_].setScissor(0, scissor);
 
+    // Bind vertex buffer
+    vkCommandBuffers_[currentFrame_].bindVertexBuffers(0, {*pVertexBuffer_->get()}, {0});
+
     // Bind pipeline
     vkCommandBuffers_[currentFrame_].bindPipeline(vk::PipelineBindPoint::eGraphics, *pipeline_.get());
 
@@ -100,18 +113,18 @@ void Graphic::Update() {
 
     // Wait for submit
     while (vk::Result::eTimeout ==
-           device_.get().waitForFences({*drawFences_[currentFrame_]}, VK_TRUE, std::numeric_limits<uint64_t>::max()))
-        ;
+           device_.get().waitForFences({*drawFences_[currentFrame_]}, VK_TRUE, std::numeric_limits<uint64_t>::max())) {}
 
     // Submit acquired image to present queue
     vk::PresentInfoKHR presentInfo{*renderFinishedSemaphores_[currentFrame_], *pSwapChain_->get(), imageIndex};
     result = device_.getPresentQueue().presentKHR(presentInfo);
     if (result == vk::Result::eErrorOutOfDateKHR || result == vk::Result::eSuboptimalKHR ||
-        window_.isFramebufferResized()) {
+        window_.get().isFramebufferResized()) {
         recreateSwapChain();
-        window_.resetFramebufferResized();
+        window_.get().resetFramebufferResized();
         return;
-    } else if (result != vk::Result::eSuccess) {
+    }
+    if (result != vk::Result::eSuccess) {
         throw std::runtime_error("failed to present swap chain image!");
     }
 
@@ -119,9 +132,9 @@ void Graphic::Update() {
 }
 
 void Graphic::recreateSwapChain() {
-    auto windowExtent = window_.getExtent();
+    auto windowExtent = window_.get().getExtent();
     while (windowExtent.width == 0 || windowExtent.height == 0) {
-        windowExtent = window_.getExtent();
+        windowExtent = window_.get().getExtent();
         glfwWrapper([]() { glfwWaitEvents(); });
     }
 

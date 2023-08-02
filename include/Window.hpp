@@ -2,7 +2,6 @@
 
 #include <string>
 
-#define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
 #include <vulkan/vulkan.hpp>
 
@@ -15,6 +14,8 @@ public:
 
     Window(const Window &) = delete;
     Window &operator=(const Window &) = delete;
+    Window(Window &&) = delete;
+    Window &operator=(Window &&) = delete;
 
     [[nodiscard]] bool shouldClose() const noexcept;
 

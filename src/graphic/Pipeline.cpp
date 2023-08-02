@@ -1,5 +1,7 @@
 #include "graphic/Pipeline.hpp"
 
+#include "graphic/Buffer.hpp"
+
 namespace nae::graphic {
 
 Pipeline::Pipeline(const Device &device,
@@ -22,11 +24,11 @@ Pipeline::Pipeline(const Device &device,
                                               nullptr}};
 
     // Vertex input empty for now because hard coded in shader
+    auto bindingDescriptions = Vertex::getBindingDescriptions();
+    auto attributeDescriptions = Vertex::getAttributeDescriptions();
     vk::PipelineVertexInputStateCreateInfo pipelineVertexInputStateCreateInfo{vk::PipelineVertexInputStateCreateFlags{},
-                                                                              0,
-                                                                              nullptr,
-                                                                              0,
-                                                                              nullptr};
+                                                                              bindingDescriptions,
+                                                                              attributeDescriptions};
 
     // Input assembly
     vk::PipelineInputAssemblyStateCreateInfo pipelineInputAssemblyStateCreateInfo{

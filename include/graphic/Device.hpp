@@ -1,5 +1,6 @@
 #pragma once
 
+#include <functional>
 #include <string>
 #include <vector>
 
@@ -16,9 +17,12 @@ class Surface;
 class Device {
 public:
     explicit Device(const PhysicalDevice &physicalDevice, const Surface &surface);
+    ~Device() = default;
 
     Device(const Device &) = delete;
     Device &operator=(const Device &) = delete;
+    Device(Device &&) = default;
+    Device &operator=(Device &&) = default;
 
     [[nodiscard]] vk::raii::DeviceMemory createDeviceMemory(const vk::MemoryRequirements &memoryRequirements,
                                                             vk::MemoryPropertyFlags memoryPropertyFlags) const;
@@ -32,7 +36,7 @@ public:
 private:
     void setGraphicAndPresentQueueFamilyIndex(const Surface &surface);
 
-    const PhysicalDevice &physicalDevice_;
+    std::reference_wrapper<const PhysicalDevice> physicalDevice_;
 
     vk::raii::Device vkDevice_{nullptr};
     vk::raii::Queue vkGraphicQueue_{nullptr};
@@ -41,30 +45,5 @@ private:
     uint32_t graphicQueueFamilyIndex_{};
     uint32_t presentQueueFamilyIndex_{};
 };
-
-template<typename T>
-void copyToDevice(const vk::raii::DeviceMemory &deviceMemory,
-                  const T *pData,
-                  size_t count,
-                  vk::DeviceSize stride = sizeof(T)) {
-    assert(sizeof(T) <= stride);
-    auto *deviceData = static_cast<uint8_t *>(deviceMemory.mapMemory(0, count * stride));
-
-    if (stride == sizeof(T)) {
-        memcpy(deviceData, pData, count * sizeof(T));
-    } else {
-        for (size_t i = 0; i < count; ++i) {
-            memcpy(deviceData, &pData[i], sizeof(T));
-            deviceData += stride;
-        }
-    }
-
-    deviceMemory.unmapMemory();
-}
-
-template<typename T>
-void copyToDevice(const vk::raii::DeviceMemory &deviceMemory, const T &data) {
-    copyToDevice<T>(deviceMemory, &data, 1);
-}
 
 } // namespace nae::graphic

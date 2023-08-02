@@ -9,11 +9,8 @@ set(SOURCE_FILES
     graphic/Device.cpp
     graphic/Surface.cpp
     graphic/SwapChain.cpp
-    graphic/Image.cpp
     graphic/Buffer.cpp
-    graphic/Descriptor.cpp
     graphic/RenderPass.cpp
-    graphic/Texture.cpp
     graphic/CommandBuffer.cpp
     graphic/Shader.cpp
     graphic/Pipeline.cpp)
@@ -45,6 +42,7 @@ add_dependencies(not-an-engine nae-shaders)
 
 target_compile_definitions(not-an-engine
     PUBLIC
+    GLFW_INCLUDE_VULKAN
     GLM_FORCE_RADIANS
     GLM_FORCE_DEPTH_ZERO_TO_ONE)
 

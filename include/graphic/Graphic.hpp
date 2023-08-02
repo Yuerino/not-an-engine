@@ -1,5 +1,6 @@
 #pragma once
 
+#include <functional>
 #include <memory>
 #include <vector>
 
@@ -25,15 +26,18 @@ public:
 
     Graphic(const Graphic &) = delete;
     Graphic &operator=(const Graphic &) = delete;
+    Graphic(Graphic &&) = delete;
+    Graphic &operator=(Graphic &&) = delete;
 
     void Update();
 
 private:
     void recreateSwapChain();
 
-    const uint32_t MAX_FRAMES_IN_FLIGHT = 2;
+    static const uint32_t MAX_FRAMES_IN_FLIGHT = 2;
     uint32_t currentFrame_ = 0;
-    Window &window_;
+
+    std::reference_wrapper<Window> window_;
 
     graphic::Instance instance_;
     graphic::Surface surface_;
@@ -41,6 +45,8 @@ private:
     graphic::Device device_;
     std::unique_ptr<graphic::SwapChain> pSwapChain_;
     graphic::Pipeline pipeline_;
+
+    std::unique_ptr<graphic::Buffer> pVertexBuffer_;
 
     vk::raii::CommandPool vkCommandPool_{nullptr};
     vk::raii::CommandBuffers vkCommandBuffers_{nullptr};
