@@ -32,10 +32,12 @@ Graphic::Graphic(Window &window)
     const std::vector<graphic::Vertex> vertices = {{{0.0f, -0.5f}, {1.0f, 0.0f, 0.0f}},
                                                    {{0.5f, 0.5f}, {0.0f, 1.0f, 0.0f}},
                                                    {{-0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}}};
-    pVertexBuffer_ = std::make_unique<graphic::Buffer>(device_,
-                                                       sizeof(graphic::Vertex) * vertices.size(),
-                                                       vk::BufferUsageFlagBits::eVertexBuffer);
-    pVertexBuffer_->mapMemory(vertices.data(), vertices.size());
+    pVertexBuffer_ = std::make_unique<graphic::Buffer>(
+            device_,
+            sizeof(graphic::Vertex) * vertices.size(),
+            vk::BufferUsageFlagBits::eVertexBuffer | vk::BufferUsageFlagBits::eTransferDst,
+            vk::MemoryPropertyFlagBits::eDeviceLocal);
+    pVertexBuffer_->mapLocalMemory(vkCommandPool_, device_.getGraphicQueue(), vertices);
 
     imageAcquiredSemaphores_.reserve(MAX_FRAMES_IN_FLIGHT);
     renderFinishedSemaphores_.reserve(MAX_FRAMES_IN_FLIGHT);

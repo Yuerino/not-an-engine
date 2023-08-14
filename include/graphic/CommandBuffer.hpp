@@ -1,5 +1,4 @@
-#ifndef NOT_AN_ENGINE_GRAPHIC_COMMANDBUFFER_HPP
-#define NOT_AN_ENGINE_GRAPHIC_COMMANDBUFFER_HPP
+#pragma once
 
 #include <vulkan/vulkan.hpp>
 #include <vulkan/vulkan_raii.hpp>
@@ -7,15 +6,6 @@
 #include "graphic/Device.hpp"
 
 namespace nae::graphic {
-
-[[nodiscard]] vk::raii::CommandBuffer createCommandBuffer(const vk::raii::Device &device,
-                                                          const vk::raii::CommandPool &commandPool);
-
-void setImageLayout(const vk::raii::CommandBuffer &commandBuffer,
-                    vk::Image image,
-                    vk::Format format,
-                    vk::ImageLayout oldImageLayout,
-                    vk::ImageLayout newImageLayout);
 
 template<typename Func>
 void oneTimeSubmit(const vk::raii::CommandBuffer &commandBuffer, const vk::raii::Queue &queue, const Func &func) {
@@ -36,6 +26,10 @@ void oneTimeSubmit(const Device &device,
     oneTimeSubmit(commandBuffers.front(), queue, func);
 }
 
-} // namespace nae::graphic
+void setImageLayout(const vk::raii::CommandBuffer &commandBuffer,
+                    vk::Image image,
+                    vk::Format format,
+                    vk::ImageLayout oldImageLayout,
+                    vk::ImageLayout newImageLayout);
 
-#endif // NOT_AN_ENGINE_GRAPHIC_COMMANDBUFFER_HPP
+} // namespace nae::graphic

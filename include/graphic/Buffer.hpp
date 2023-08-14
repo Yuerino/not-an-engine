@@ -26,51 +26,46 @@ public:
     [[nodiscard]] const vk::raii::Buffer &get() const noexcept;
 
     template<typename T>
-    void mapMemory(const T *pData, size_t count) {
+    void mapMemory(const std::vector<T> &data, size_t stride = 0) {
         assert((propertyFlags_ & vk::MemoryPropertyFlagBits::eHostVisible) &&
                (propertyFlags_ & vk::MemoryPropertyFlagBits::eHostCoherent));
-        assert(count * sizeof(T) <= size_);
 
-        void *deviceData = vkDeviceMemory_.mapMemory(0, count * sizeof(T));
-        memcpy(deviceData, pData, count * sizeof(T));
+        size_t elementSize = stride ? stride : sizeof(T);
+        assert(elementSize <= size_);
+
+        size_t dataSize = data.size() * elementSize;
+        assert(dataSize <= size_);
+
+        void *deviceData = vkDeviceMemory_.mapMemory(0, dataSize);
+        memcpy(deviceData, data.data(), dataSize);
         vkDeviceMemory_.unmapMemory();
     }
 
-    //
-    //    template<typename DataType>
-    //    void upload(const std::vector<DataType> &data, size_t stride = 0) const {
-    //        assert(propertyFlags_ & vk::MemoryPropertyFlagBits::eHostVisible);
-    //
-    //        size_t elementSize = stride ? stride : sizeof(DataType);
-    //        assert(sizeof(DataType) <= elementSize);
-    //
-    //        copyToDevice(vkDeviceMemory_, data.data(), data.size(), elementSize);
-    //    }
-    //
-    //    template<typename DataType>
-    //    void upload(const Device &device,
-    //                const vk::raii::CommandPool &commandPool,
-    //                const vk::raii::Queue &queue,
-    //                const std::vector<DataType> &data,
-    //                size_t stride) const {
-    //        assert(usage_ & vk::BufferUsageFlagBits::eTransferDst);
-    //        assert(propertyFlags_ & vk::MemoryPropertyFlagBits::eDeviceLocal);
-    //
-    //        size_t elementSize = stride ? stride : sizeof(DataType);
-    //        assert(sizeof(DataType) <= elementSize);
-    //
-    //        size_t dataSize = data.size() * elementSize;
-    //        assert(dataSize <= size_);
-    //
-    //        Buffer stagingBuffer{device, dataSize, vk::BufferUsageFlagBits::eTransferSrc};
-    //        copyToDevice(stagingBuffer.vkDeviceMemory_, data.data(), data.size(), elementSize);
-    //
-    //        oneTimeSubmit(device, commandPool, queue, [&](const vk::raii::CommandBuffer &commandBuffer) {
-    //            commandBuffer.copyBuffer(*stagingBuffer.vkBuffer_, *this->vkBuffer_, vk::BufferCopy{0, 0, dataSize});
-    //        });
-    //    }
+    template<typename T>
+    void mapLocalMemory(const vk::raii::CommandPool &commandPool,
+                        const vk::raii::Queue &queue,
+                        const std::vector<T> &data,
+                        size_t stride = 0) {
+        assert((propertyFlags_ & vk::MemoryPropertyFlagBits::eDeviceLocal) &&
+               (usage_ & vk::BufferUsageFlagBits::eTransferDst));
+
+        size_t elementSize = stride ? stride : sizeof(T);
+        assert(elementSize <= size_);
+
+        size_t dataSize = data.size() * elementSize;
+        assert(dataSize <= size_);
+
+        Buffer stagingBuffer{device_, dataSize, vk::BufferUsageFlagBits::eTransferSrc};
+        stagingBuffer.mapMemory(data, stride);
+
+        oneTimeSubmit(device_, commandPool, queue, [&](const vk::raii::CommandBuffer &commandBuffer) {
+            commandBuffer.copyBuffer(*stagingBuffer.vkBuffer_, *this->vkBuffer_, vk::BufferCopy{0, 0, size_});
+        });
+    }
 
 private:
+    std::reference_wrapper<const Device> device_;
+
     vk::raii::Buffer vkBuffer_{nullptr};
     vk::raii::DeviceMemory vkDeviceMemory_{nullptr};
 

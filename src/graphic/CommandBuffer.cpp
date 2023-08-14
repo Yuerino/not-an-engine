@@ -2,11 +2,6 @@
 
 namespace nae::graphic {
 
-vk::raii::CommandBuffer createCommandBuffer(const vk::raii::Device &device, const vk::raii::CommandPool &commandPool) {
-    vk::CommandBufferAllocateInfo commandBufferAllocateInfo{*commandPool, vk::CommandBufferLevel::ePrimary, 1};
-    return std::move(vk::raii::CommandBuffers{device, commandBufferAllocateInfo}.front());
-}
-
 void setImageLayout(const vk::raii::CommandBuffer &commandBuffer,
                     vk::Image image,
                     vk::Format format,
@@ -25,7 +20,6 @@ void setImageLayout(const vk::raii::CommandBuffer &commandBuffer,
             break;
         default:
             assert(false);
-            break;
     }
 
     vk::PipelineStageFlags sourceStage;
@@ -42,7 +36,6 @@ void setImageLayout(const vk::raii::CommandBuffer &commandBuffer,
             break;
         default:
             assert(false);
-            break;
     }
 
     vk::AccessFlags destinationAccessMask;
@@ -68,7 +61,6 @@ void setImageLayout(const vk::raii::CommandBuffer &commandBuffer,
             break;
         default:
             assert(false);
-            break;
     }
 
     vk::PipelineStageFlags destinationStage;
@@ -94,7 +86,6 @@ void setImageLayout(const vk::raii::CommandBuffer &commandBuffer,
             break;
         default:
             assert(false);
-            break;
     }
 
     vk::ImageAspectFlags aspectMask;
