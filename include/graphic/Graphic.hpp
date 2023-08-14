@@ -47,6 +47,7 @@ private:
     graphic::Pipeline pipeline_;
 
     std::unique_ptr<graphic::Buffer> pVertexBuffer_;
+    std::unique_ptr<graphic::Buffer> pIndexBuffer_;
 
     vk::raii::CommandPool vkCommandPool_{nullptr};
     vk::raii::CommandBuffers vkCommandBuffers_{nullptr};

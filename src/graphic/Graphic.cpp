@@ -29,15 +29,25 @@ Graphic::Graphic(Window &window)
               vk::CommandBufferAllocateInfo{*vkCommandPool_, vk::CommandBufferLevel::ePrimary, MAX_FRAMES_IN_FLIGHT}} {
     pSwapChain_->createFrameBuffers(device_, pipeline_.getRenderPass());
 
-    const std::vector<graphic::Vertex> vertices = {{{0.0f, -0.5f}, {1.0f, 0.0f, 0.0f}},
-                                                   {{0.5f, 0.5f}, {0.0f, 1.0f, 0.0f}},
-                                                   {{-0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}}};
+    const std::vector<graphic::Vertex> vertices = {{{-0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}},
+                                                   {{0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}},
+                                                   {{0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}},
+                                                   {{-0.5f, 0.5f}, {1.0f, 1.0f, 1.0f}}};
     pVertexBuffer_ = std::make_unique<graphic::Buffer>(
             device_,
             sizeof(graphic::Vertex) * vertices.size(),
             vk::BufferUsageFlagBits::eVertexBuffer | vk::BufferUsageFlagBits::eTransferDst,
             vk::MemoryPropertyFlagBits::eDeviceLocal);
     pVertexBuffer_->mapLocalMemory(vkCommandPool_, device_.getGraphicQueue(), vertices);
+
+    // TODO: unify index buffer and vertex buffer
+    const std::vector<uint16_t> indices = {0, 1, 2, 2, 3, 0};
+    pIndexBuffer_ = std::make_unique<graphic::Buffer>(
+            device_,
+            sizeof(uint16_t) * indices.size(),
+            vk::BufferUsageFlagBits::eIndexBuffer | vk::BufferUsageFlagBits::eTransferDst,
+            vk::MemoryPropertyFlagBits::eDeviceLocal);
+    pIndexBuffer_->mapLocalMemory(vkCommandPool_, device_.getGraphicQueue(), indices);
 
     imageAcquiredSemaphores_.reserve(MAX_FRAMES_IN_FLIGHT);
     renderFinishedSemaphores_.reserve(MAX_FRAMES_IN_FLIGHT);
@@ -91,14 +101,15 @@ void Graphic::Update() {
     vkCommandBuffers_[currentFrame_].setViewport(0, viewPort);
     vkCommandBuffers_[currentFrame_].setScissor(0, scissor);
 
-    // Bind vertex buffer
+    // Bind vertex and index buffer
     vkCommandBuffers_[currentFrame_].bindVertexBuffers(0, {*pVertexBuffer_->get()}, {0});
+    vkCommandBuffers_[currentFrame_].bindIndexBuffer(*pIndexBuffer_->get(), 0, vk::IndexType::eUint16);
 
     // Bind pipeline
     vkCommandBuffers_[currentFrame_].bindPipeline(vk::PipelineBindPoint::eGraphics, *pipeline_.get());
 
     // Draw
-    vkCommandBuffers_[currentFrame_].draw(3, 1, 0, 0);
+    vkCommandBuffers_[currentFrame_].drawIndexed(static_cast<uint32_t>(6), 1, 0, 0, 0);
 
     // End
     vkCommandBuffers_[currentFrame_].endRenderPass();
