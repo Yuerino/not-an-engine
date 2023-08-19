@@ -2,6 +2,7 @@
 
 #include <vulkan/vulkan_raii.hpp>
 
+#include "graphic/Descriptor.hpp"
 #include "graphic/Device.hpp"
 #include "graphic/RenderPass.hpp"
 #include "graphic/Shader.hpp"
@@ -13,6 +14,7 @@ class Pipeline {
 public:
     Pipeline(const Device &device,
              const SwapChain &swapChain,
+             const DescriptorSetLayout &descriptorSetLayout,
              const std::string &vertexShaderPath,
              const std::string &fragmentShaderPath);
     ~Pipeline() = default;
@@ -24,6 +26,7 @@ public:
 
     [[nodiscard]] const vk::raii::Pipeline &get() const noexcept;
     [[nodiscard]] const RenderPass &getRenderPass() const noexcept;
+    [[nodiscard]] const vk::raii::PipelineLayout &getLayout() const noexcept;
 
 private:
     ShaderModule vertexShaderModule_{nullptr};

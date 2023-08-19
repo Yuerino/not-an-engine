@@ -6,6 +6,7 @@ namespace nae::graphic {
 
 Pipeline::Pipeline(const Device &device,
                    const SwapChain &swapChain,
+                   const DescriptorSetLayout &descriptorSetLayout,
                    const std::string &vertexShaderPath,
                    const std::string &fragmentShaderPath) {
     // Shader
@@ -52,7 +53,7 @@ Pipeline::Pipeline(const Device &device,
             false,
             vk::PolygonMode::eFill,
             vk::CullModeFlagBits::eBack,
-            vk::FrontFace::eClockwise,
+            vk::FrontFace::eCounterClockwise,
             false,
             0.0f,
             0.0f,
@@ -101,7 +102,7 @@ Pipeline::Pipeline(const Device &device,
                                                                             {{0.0f, 0.0f, 0.0f, 0.0f}}};
 
     // Pipeline layout
-    vk::PipelineLayoutCreateInfo pipelineLayoutCreateInfo{vk::PipelineLayoutCreateFlags{}, 0, nullptr, 0, nullptr};
+    vk::PipelineLayoutCreateInfo pipelineLayoutCreateInfo{vk::PipelineLayoutCreateFlags{}, *descriptorSetLayout.get()};
     vkPipelineLayout_ = vk::raii::PipelineLayout{device.get(), pipelineLayoutCreateInfo};
 
     // Pipeline cache
@@ -134,6 +135,10 @@ const vk::raii::Pipeline &Pipeline::get() const noexcept {
 
 const RenderPass &Pipeline::getRenderPass() const noexcept {
     return renderPass_;
+}
+
+const vk::raii::PipelineLayout &Pipeline::getLayout() const noexcept {
+    return vkPipelineLayout_;
 }
 
 } // namespace nae::graphic

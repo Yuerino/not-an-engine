@@ -13,7 +13,8 @@ set(SOURCE_FILES
     graphic/RenderPass.cpp
     graphic/CommandBuffer.cpp
     graphic/Shader.cpp
-    graphic/Pipeline.cpp)
+    graphic/Pipeline.cpp
+    graphic/Descriptor.cpp)
 
 find_package(glfw3 3.3 CONFIG QUIET)
 if (NOT glfw3_FOUND)

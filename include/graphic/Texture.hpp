@@ -24,7 +24,7 @@ public:
     template<typename ImageGenerator>
     void setImage(const vk::raii::CommandBuffer &commandBuffer, const ImageGenerator &imageGenerator) {
         void *data = needStaging_
-                             ? stagingBufferData_.deviceMemory_.mapMemory(
+                             ? stagingBufferData_.deviceMemory_.copyToMemory(
                                        0,
                                        stagingBufferData_.buffer_.getMemoryRequirements().size)
                              : imageData_.deviceMemory_.mapMemory(0, imageData_.image_.getMemoryRequirements().size);

@@ -1,10 +1,11 @@
 #include "graphic/Graphic.hpp"
 
+#include <chrono>
 #include <iostream>
 
+#include <glm/gtc/matrix_transform.hpp>
+
 #include "GlfwApi.hpp"
-#include "graphic/Buffer.hpp"
-#include "graphic/CommandBuffer.hpp"
 #include "util.hpp"
 
 namespace nae {
@@ -20,7 +21,9 @@ Graphic::Graphic(Window &window)
               surface_,
               device_,
               vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eTransferSrc)},
-      pipeline_{device_, *pSwapChain_, util::vertShaderPath, util::fragShaderPath},
+      descriptorPool_{device_, {{vk::DescriptorType::eUniformBuffer, MAX_FRAMES_IN_FLIGHT}}},
+      descriptorSetLayout_{device_, {{0, vk::DescriptorType::eUniformBuffer, 1, vk::ShaderStageFlagBits::eVertex}}},
+      pipeline_{device_, *pSwapChain_, descriptorSetLayout_, util::vertShaderPath, util::fragShaderPath},
       vkCommandPool_{device_.get(),
                      vk::CommandPoolCreateInfo{vk::CommandPoolCreateFlagBits::eResetCommandBuffer,
                                                device_.getGraphicQueueFamilyIndex()}},
@@ -28,6 +31,16 @@ Graphic::Graphic(Window &window)
               device_.get(),
               vk::CommandBufferAllocateInfo{*vkCommandPool_, vk::CommandBufferLevel::ePrimary, MAX_FRAMES_IN_FLIGHT}} {
     pSwapChain_->createFrameBuffers(device_, pipeline_.getRenderPass());
+
+    mvpBuffers_.reserve(MAX_FRAMES_IN_FLIGHT);
+    for (uint32_t i = 0; i < MAX_FRAMES_IN_FLIGHT; ++i) {
+        mvpBuffers_.emplace_back(device_, sizeof(graphic::MvpMatrices), vk::BufferUsageFlagBits::eUniformBuffer);
+        mvpBuffers_[i].mapMemory();
+    }
+
+    std::vector<vk::DescriptorSetLayout> vkDescriptorSetLayouts(2, *descriptorSetLayout_.get());
+    pDescriptorSets_ = std::make_unique<graphic::DescriptorSets>(device_, descriptorPool_, vkDescriptorSetLayouts);
+    pDescriptorSets_->update(mvpBuffers_);
 
     const std::vector<graphic::Vertex> vertices = {{{-0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}},
                                                    {{0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}},
@@ -38,7 +51,7 @@ Graphic::Graphic(Window &window)
             sizeof(graphic::Vertex) * vertices.size(),
             vk::BufferUsageFlagBits::eVertexBuffer | vk::BufferUsageFlagBits::eTransferDst,
             vk::MemoryPropertyFlagBits::eDeviceLocal);
-    pVertexBuffer_->mapLocalMemory(vkCommandPool_, device_.getGraphicQueue(), vertices);
+    pVertexBuffer_->copyToDeviceMemory(vkCommandPool_, device_.getGraphicQueue(), vertices);
 
     // TODO: unify index buffer and vertex buffer
     const std::vector<uint16_t> indices = {0, 1, 2, 2, 3, 0};
@@ -47,7 +60,7 @@ Graphic::Graphic(Window &window)
             sizeof(uint16_t) * indices.size(),
             vk::BufferUsageFlagBits::eIndexBuffer | vk::BufferUsageFlagBits::eTransferDst,
             vk::MemoryPropertyFlagBits::eDeviceLocal);
-    pIndexBuffer_->mapLocalMemory(vkCommandPool_, device_.getGraphicQueue(), indices);
+    pIndexBuffer_->copyToDeviceMemory(vkCommandPool_, device_.getGraphicQueue(), indices);
 
     imageAcquiredSemaphores_.reserve(MAX_FRAMES_IN_FLIGHT);
     renderFinishedSemaphores_.reserve(MAX_FRAMES_IN_FLIGHT);
@@ -76,6 +89,9 @@ void Graphic::Update() {
     if (result != vk::Result::eSuccess && result != vk::Result::eSuboptimalKHR) {
         throw std::runtime_error("failed to acquire swap chain image!");
     }
+
+    // Update mvp matrices
+    updateMvpMatrix(currentFrame_);
 
     // Command buffer begin
     vkCommandBuffers_[currentFrame_].reset(vk::CommandBufferResetFlags{});
@@ -107,6 +123,13 @@ void Graphic::Update() {
 
     // Bind pipeline
     vkCommandBuffers_[currentFrame_].bindPipeline(vk::PipelineBindPoint::eGraphics, *pipeline_.get());
+
+    // Bind descriptor set
+    vkCommandBuffers_[currentFrame_].bindDescriptorSets(vk::PipelineBindPoint::eGraphics,
+                                                        *pipeline_.getLayout(),
+                                                        0,
+                                                        {*(*pDescriptorSets_)[currentFrame_]},
+                                                        {});
 
     // Draw
     vkCommandBuffers_[currentFrame_].drawIndexed(static_cast<uint32_t>(6), 1, 0, 0, 0);
@@ -159,6 +182,23 @@ void Graphic::recreateSwapChain() {
             device_,
             vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eTransferSrc);
     pSwapChain_->createFrameBuffers(device_, pipeline_.getRenderPass());
+}
+
+void Graphic::updateMvpMatrix(uint32_t currentFrame) const {
+    static auto startTime = std::chrono::high_resolution_clock::now();
+    auto currentTime = std::chrono::high_resolution_clock::now();
+    float time = std::chrono::duration<float, std::chrono::seconds::period>(currentTime - startTime).count();
+    graphic::MvpMatrices mvpMatrices{
+            .model = glm::rotate(glm::mat4(1.0f), time * glm::radians(90.0f), glm::vec3{0.0f, 0.0f, 1.0f}),
+            .view = glm::lookAt(glm::vec3{2.0f, 2.0f, 2.0f}, glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{0.0f, 0.0f, 1.0f}),
+            .proj = glm::perspective(glm::radians(45.0f),
+                                     static_cast<float>(pSwapChain_->getExtent().width) /
+                                             static_cast<float>(pSwapChain_->getExtent().height),
+                                     0.1f,
+                                     10.0f)};
+    mvpMatrices.proj[1][1] *= -1;
+    mvpBuffers_[currentFrame].writeToMemory(mvpMatrices);
+    mvpBuffers_[currentFrame].flushMemory();
 }
 
 } // namespace nae

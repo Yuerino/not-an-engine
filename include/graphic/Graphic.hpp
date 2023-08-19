@@ -1,14 +1,13 @@
 #pragma once
 
-#include <functional>
 #include <memory>
 #include <vector>
 
-#include <glm/glm.hpp>
 #include <vulkan/vulkan_raii.hpp>
 
 #include "Window.hpp"
 #include "graphic/Buffer.hpp"
+#include "graphic/Descriptor.hpp"
 #include "graphic/Device.hpp"
 #include "graphic/Image.hpp"
 #include "graphic/Instance.hpp"
@@ -33,8 +32,9 @@ public:
 
 private:
     void recreateSwapChain();
+    void updateMvpMatrix(uint32_t currentFrame) const;
 
-    static const uint32_t MAX_FRAMES_IN_FLIGHT = 2;
+    static constexpr uint32_t MAX_FRAMES_IN_FLIGHT = 2;
     uint32_t currentFrame_ = 0;
 
     std::reference_wrapper<Window> window_;
@@ -44,10 +44,14 @@ private:
     graphic::PhysicalDevice physicalDevice_;
     graphic::Device device_;
     std::unique_ptr<graphic::SwapChain> pSwapChain_;
+    graphic::DescriptorPool descriptorPool_;
+    graphic::DescriptorSetLayout descriptorSetLayout_;
+    std::unique_ptr<graphic::DescriptorSets> pDescriptorSets_;
     graphic::Pipeline pipeline_;
 
     std::unique_ptr<graphic::Buffer> pVertexBuffer_;
     std::unique_ptr<graphic::Buffer> pIndexBuffer_;
+    std::vector<graphic::Buffer> mvpBuffers_;
 
     vk::raii::CommandPool vkCommandPool_{nullptr};
     vk::raii::CommandBuffers vkCommandBuffers_{nullptr};

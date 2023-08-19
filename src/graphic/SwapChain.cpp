@@ -1,5 +1,6 @@
 #include "graphic/SwapChain.hpp"
 
+#include <array>
 #include <limits>
 
 namespace nae::graphic {
@@ -64,10 +65,11 @@ SwapChain::SwapChain(const PhysicalDevice &physicalDevice,
     // transfer ownership of images between the queues, or we have to create the swapchain with imageSharingMode
     // as vk::SharingMode::eConcurrent
     if (device.getGraphicQueueFamilyIndex() != device.getPresentQueueFamilyIndex()) {
-        uint32_t queueFamilyIndices[2] = {device.getGraphicQueueFamilyIndex(), device.getPresentQueueFamilyIndex()};
+        std::array<uint32_t, 2> queueFamilyIndices = {device.getGraphicQueueFamilyIndex(),
+                                                      device.getPresentQueueFamilyIndex()};
         swapChainCreateInfo.imageSharingMode = vk::SharingMode::eConcurrent;
-        swapChainCreateInfo.queueFamilyIndexCount = 2;
-        swapChainCreateInfo.pQueueFamilyIndices = queueFamilyIndices;
+        swapChainCreateInfo.queueFamilyIndexCount = queueFamilyIndices.size();
+        swapChainCreateInfo.pQueueFamilyIndices = queueFamilyIndices.data();
     }
 
     vkSwapChain_ = vk::raii::SwapchainKHR{device.get(), swapChainCreateInfo};
@@ -94,13 +96,13 @@ SwapChain::SwapChain(const PhysicalDevice &physicalDevice,
 void SwapChain::createFrameBuffers(const Device &device,
                                    const RenderPass &renderPass,
                                    const vk::raii::ImageView *depthImageViewPtr) {
-    vk::ImageView attachments[2];
+    std::array<vk::ImageView, 2> attachments;
     attachments[1] = depthImageViewPtr ? **depthImageViewPtr : vk::ImageView{};
 
     vk::FramebufferCreateInfo framebufferCreateInfo{vk::FramebufferCreateFlags{},
                                                     *renderPass.get(),
                                                     static_cast<uint32_t>(depthImageViewPtr ? 2 : 1),
-                                                    attachments,
+                                                    attachments.data(),
                                                     extent_.width,
                                                     extent_.height,
                                                     1};

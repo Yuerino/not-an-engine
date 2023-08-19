@@ -1,32 +1,69 @@
-#ifndef NOT_AN_ENGINE_GRAPHIC_DESCRIPTOR_HPP
-#define NOT_AN_ENGINE_GRAPHIC_DESCRIPTOR_HPP
+#pragma once
 
+#include <functional>
 #include <vector>
 
-#include <vulkan/vulkan.hpp>
 #include <vulkan/vulkan_raii.hpp>
 
-#include "graphic/Texture.hpp"
+#include "graphic/Buffer.hpp"
+#include "graphic/Device.hpp"
 
 namespace nae::graphic {
 
-[[nodiscard]] vk::raii::DescriptorSetLayout createDescriptorSetLayout(
-        const vk::raii::Device &device,
-        const std::vector<std::tuple<vk::DescriptorType, uint32_t, vk::ShaderStageFlags>> &bindingData,
-        vk::DescriptorSetLayoutCreateFlags flags = {});
+class DescriptorPool {
+public:
+    DescriptorPool(const Device &device, const std::vector<vk::DescriptorPoolSize> &poolSizes);
+    ~DescriptorPool() = default;
 
-[[nodiscard]] vk::raii::DescriptorPool createDescriptorPool(const vk::raii::Device &device,
-                                                            const std::vector<vk::DescriptorPoolSize> &poolSizes);
+    DescriptorPool(const DescriptorPool &) = delete;
+    DescriptorPool &operator=(const DescriptorPool &) = delete;
+    DescriptorPool(DescriptorPool &&) = default;
+    DescriptorPool &operator=(DescriptorPool &&) = default;
 
-void updateDescriptorSets(
-        const vk::raii::Device &device,
-        const vk::raii::DescriptorSet &descriptorSet,
-        const std::vector<
-                std::tuple<vk::DescriptorType, const vk::raii::Buffer &, vk::DeviceSize, const vk::raii::BufferView *>>
-                &bufferData,
-        const std::vector<TextureData> &textureData,
-        uint32_t bindingOffset = 0);
+    [[nodiscard]] const vk::raii::DescriptorPool &get() const noexcept;
+
+private:
+    std::reference_wrapper<const Device> device_;
+    vk::raii::DescriptorPool vkDescriptorPool_{nullptr};
+};
+
+class DescriptorSetLayout {
+public:
+    DescriptorSetLayout(const Device &device, const std::vector<vk::DescriptorSetLayoutBinding> &bindings);
+    ~DescriptorSetLayout() = default;
+
+    DescriptorSetLayout(const DescriptorSetLayout &) = delete;
+    DescriptorSetLayout &operator=(const DescriptorSetLayout &) = delete;
+    DescriptorSetLayout(DescriptorSetLayout &&) = default;
+    DescriptorSetLayout &operator=(DescriptorSetLayout &&) = default;
+
+    [[nodiscard]] const vk::raii::DescriptorSetLayout &get() const noexcept;
+
+private:
+    vk::raii::DescriptorSetLayout vkDescriptorSetLayout_{nullptr};
+};
+
+class DescriptorSets {
+public:
+    DescriptorSets(const Device &device,
+                   const DescriptorPool &descriptorPool,
+                   const std::vector<vk::DescriptorSetLayout> &vkDescriptorSetLayouts);
+    ~DescriptorSets() = default;
+
+    DescriptorSets(const DescriptorSets &) = delete;
+    DescriptorSets &operator=(const DescriptorSets &) = delete;
+    DescriptorSets(DescriptorSets &&) = default;
+    DescriptorSets &operator=(DescriptorSets &&) = default;
+
+    void update(const std::vector<Buffer> &buffers, uint32_t bindingOffset = 0);
+
+    [[nodiscard]] const vk::raii::DescriptorSets &get() const noexcept;
+    [[nodiscard]] vk::raii::DescriptorSet &operator[](size_t idx) noexcept;
+    [[nodiscard]] const vk::raii::DescriptorSet &operator[](size_t idx) const noexcept;
+
+private:
+    std::reference_wrapper<const Device> device_;
+    vk::raii::DescriptorSets vkDescriptorSets_{nullptr};
+};
 
 } // namespace nae::graphic
-
-#endif // NOT_AN_ENGINE_GRAPHIC_DESCRIPTOR_HPP
