@@ -3,8 +3,10 @@
 
 #include <vulkan/vulkan.hpp>
 
-#include "App.hpp"
-#include "util.hpp"
+#include "core/App.hpp"
+#include "core/GlfwApi.hpp"
+#include "core/Scene.hpp"
+#include "core/util.hpp"
 
 int main() {
 #ifdef __linux__
@@ -16,7 +18,9 @@ int main() {
 #endif
 
     try {
+        std::unique_ptr<nae::BasicScene> scene = std::make_unique<nae::BasicScene>();
         nae::App app{};
+        app.addScene(std::move(scene));
         app.run();
     } catch (const nae::GlfwException &ex) {
         std::cerr << "GLFW error code: " << ex.getErrorCode() << ", description: " << ex.what() << std::endl;

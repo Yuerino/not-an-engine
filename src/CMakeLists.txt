@@ -1,20 +1,22 @@
 set(SOURCE_FILES
     main.cpp
-    App.cpp
-    GlfwApi.cpp
-    Window.cpp
-    graphic/Graphic.cpp
-    graphic/Instance.cpp
-    graphic/PhysicalDevice.cpp
-    graphic/Device.cpp
-    graphic/Surface.cpp
-    graphic/SwapChain.cpp
-    graphic/Buffer.cpp
-    graphic/RenderPass.cpp
-    graphic/CommandBuffer.cpp
-    graphic/Shader.cpp
-    graphic/Pipeline.cpp
-    graphic/Descriptor.cpp)
+    core/App.cpp
+    core/Device.cpp
+    core/GlfwApi.cpp
+    core/GraphicInstance.cpp
+    core/PhysicalDevice.cpp
+    core/Scene.cpp
+    core/Surface.cpp
+    core/Swapchain.cpp
+    core/Window.cpp
+    renderer/Buffer.cpp
+    renderer/CommandBuffer.cpp
+    renderer/Descriptor.cpp
+    renderer/Image.cpp
+    renderer/Pipeline.cpp
+    renderer/Renderer.cpp
+    renderer/RenderPass.cpp
+    renderer/Shader.cpp)
 
 find_package(glfw3 3.3 CONFIG QUIET)
 if (NOT glfw3_FOUND)
@@ -48,11 +50,13 @@ target_compile_definitions(not-an-engine
     GLM_FORCE_DEPTH_ZERO_TO_ONE)
 
 target_include_directories(not-an-engine
+    PRIVATE
+    ${PROJECT_SOURCE_DIR}/dependency/tinyobjloader
     PUBLIC
     ${PROJECT_SOURCE_DIR}/include)
 
 target_link_libraries(not-an-engine
-    PUBLIC
-    Vulkan::Vulkan
     PRIVATE
-    glfw)
+    glfw
+    PUBLIC
+    Vulkan::Vulkan)
