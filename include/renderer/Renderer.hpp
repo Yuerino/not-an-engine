@@ -2,7 +2,7 @@
 
 #include <vulkan/vulkan_raii.hpp>
 
-#include "core/GraphicInstance.hpp"
+#include "core/GraphicContext.hpp"
 #include "renderer/Buffer.hpp"
 #include "renderer/Descriptor.hpp"
 #include "renderer/Pipeline.hpp"
@@ -11,7 +11,7 @@ namespace nae {
 
 class Renderer {
 public:
-    explicit Renderer(const GraphicInstance &graphicInstance);
+    Renderer();
     ~Renderer() = default;
 
     Renderer(const Renderer &) = delete;
@@ -27,17 +27,16 @@ public:
     Buffer loadVertices(const std::vector<Vertex> &vertices);
     void draw(const Buffer &buffer, uint32_t vertexCount);
 
-    [[nodiscard]] const Pipeline &getPipeline() const noexcept;
+    [[nodiscard]] Pipeline &getPipeline() const noexcept { return *pPipeline_; };
 
 private:
     static constexpr uint32_t MAX_FRAMES_IN_FLIGHT = 2;
 
-    const GraphicInstance *pGraphicInstance_;
-    DescriptorPool descriptorPool_;
-    DescriptorSetLayout descriptorSetLayout_;
-    Pipeline pipeline_;
-    vk::raii::CommandPool vkCommandPool_{nullptr};
-    vk::raii::CommandBuffers vkCommandBuffers_{nullptr};
+    std::unique_ptr<DescriptorPool> pDescriptorPool_;
+    std::unique_ptr<DescriptorSetLayout> pDescriptorSetLayout_;
+    std::unique_ptr<Pipeline> pPipeline_;
+    std::unique_ptr<vk::raii::CommandPool> pVkCommandPool_;
+    std::unique_ptr<vk::raii::CommandBuffers> pVkCommandBuffers_;
     std::vector<Buffer> mvpBuffers_;
     std::unique_ptr<DescriptorSets> pDescriptorSets_;
 

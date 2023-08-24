@@ -5,33 +5,41 @@
 
 namespace nae {
 
-App::App(AppConfig appConfig)
-    : appConfig_{std::move(appConfig)},
-      graphicInstance_{{}, GraphicInstance::getGlfwRequiredExtensions()},
-      window_{{appConfig_.width, appConfig_.height}, appConfig_.title} {
-    graphicInstance_.initDeviceAndSwapchain(window_);
-    pRenderer_ = std::make_unique<Renderer>(graphicInstance_);
-    graphicInstance_.createDepthAndFrameBuffers(pRenderer_->getPipeline().getRenderPass());
+App *App::pAppInstance_{nullptr};
+
+App::App(AppConfig appConfig) : appConfig_{std::move(appConfig)} {
+    assert(pAppInstance_ == nullptr && "App already exists!");
+    pAppInstance_ = this;
+
+    pGraphicContext_ = std::make_unique<GraphicContext>();
+
+    pWindow_ = std::make_unique<Window>(vk::Extent2D{appConfig_.width, appConfig_.height}, appConfig_.title);
+
+    pGraphicContext_->initDeviceAndSwapchain();
+
+    pRenderer_ = std::make_unique<Renderer>();
+
+    pGraphicContext_->createDepthAndFrameBuffers(pRenderer_->getPipeline().getRenderPass());
 }
 
 App::~App() {
-    graphicInstance_.getDevice().get().waitIdle();
+    pGraphicContext_->getDevice().get().waitIdle();
 }
 
 void App::addScene(std::unique_ptr<Scene> pScene) {
     scenes_.emplace_back(std::move(pScene));
-    scenes_.back()->onAttach(*pRenderer_);
+    scenes_.back()->onAttach();
 }
 
 void App::run() {
     lastFrameTime_ = Time::now();
     isRunning_ = true;
 
-    while (isRunning_ && not window_.shouldClose()) {
+    while (isRunning_ && not pWindow_->shouldClose()) {
         glfwWrapper([]() { glfwPollEvents(); });
 
         if (not pRenderer_->beginFrame()) {
-            graphicInstance_.recreateSwapchain(window_, pRenderer_->getPipeline().getRenderPass());
+            pGraphicContext_->recreateSwapchain(*pWindow_, pRenderer_->getPipeline().getRenderPass());
             continue;
         }
 
@@ -43,9 +51,9 @@ void App::run() {
             pScene->onUpdate(timestep);
         }
 
-        if (not pRenderer_->endFrame() || window_.isFramebufferResized()) {
-            graphicInstance_.recreateSwapchain(window_, pRenderer_->getPipeline().getRenderPass());
-            window_.resetFramebufferResized();
+        if (not pRenderer_->endFrame() || pWindow_->isFramebufferResized()) {
+            pGraphicContext_->recreateSwapchain(*pWindow_, pRenderer_->getPipeline().getRenderPass());
+            pWindow_->resetFramebufferResized();
         }
     }
 }

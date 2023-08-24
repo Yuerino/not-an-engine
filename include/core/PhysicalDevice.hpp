@@ -2,15 +2,15 @@
 
 #include <vulkan/vulkan_raii.hpp>
 
-#include "core/GraphicInstance.hpp"
+#include "core/GraphicContext.hpp"
 
 namespace nae {
 
-class GraphicInstance;
+class GraphicContext;
 
 class PhysicalDevice {
 public:
-    PhysicalDevice(const GraphicInstance &graphicInstance, const std::vector<std::string> &extensions = {}) noexcept;
+    PhysicalDevice(const GraphicContext &graphicContext, const std::vector<std::string> &extensions = {}) noexcept;
     ~PhysicalDevice() = default;
 
     PhysicalDevice(const PhysicalDevice &) = delete;

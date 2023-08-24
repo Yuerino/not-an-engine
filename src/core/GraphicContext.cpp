@@ -1,22 +1,22 @@
-#include "core/GraphicInstance.hpp"
+#include "core/GraphicContext.hpp"
 
 #include <cassert>
 #include <iostream>
 
 #include "GLFW/glfw3.h"
 
+#include "core/App.hpp"
 #include "core/GlfwApi.hpp"
 
 namespace nae {
 
 static vk::DebugUtilsMessengerCreateInfoEXT makeDebugUtilsMessengerCreateInfoEXT();
 
-GraphicInstance::GraphicInstance(const std::vector<std::string> &layers,
-                                 const std::vector<std::string> &extensions,
-                                 uint32_t apiVersion) {
-    if (glfwVulkanSupported() == GLFW_FALSE) {
-        throw GlfwException{-1, "Vulkan is not supported"};
-    }
+GraphicContext::GraphicContext(const std::vector<std::string> &layers,
+                               const std::vector<std::string> &extensions,
+                               uint32_t apiVersion) {
+    auto glfwRequiredExtensions = getGlfwRequiredExtensions();
+    glfwRequiredExtensions.insert(glfwRequiredExtensions.end(), extensions.begin(), extensions.end());
 
     // TODO: log layers and extensions
     vk::ApplicationInfo appInfo{"Application made with not-an-engine",
@@ -27,13 +27,13 @@ GraphicInstance::GraphicInstance(const std::vector<std::string> &layers,
 
 #if defined(NDEBUG)
     gatherLayers(layers);
-    gatherExtensions(extensions);
+    gatherExtensions(glfwRequiredExtensions);
 
     vk::StructureChain<vk::InstanceCreateInfo> instanceCreateInfoChain{
             {vk::InstanceCreateFlags{}, &appInfo, enabledLayers_, enabledExtensions_}};
 #else
     gatherLayers(layers, vkContext_.enumerateInstanceLayerProperties());
-    gatherExtensions(extensions, vkContext_.enumerateInstanceExtensionProperties());
+    gatherExtensions(glfwRequiredExtensions, vkContext_.enumerateInstanceExtensionProperties());
 
     vk::StructureChain<vk::InstanceCreateInfo, vk::DebugUtilsMessengerCreateInfoEXT> instanceCreateInfoChain{
             {vk::InstanceCreateFlags{}, &appInfo, enabledLayers_, enabledExtensions_},
@@ -47,7 +47,9 @@ GraphicInstance::GraphicInstance(const std::vector<std::string> &layers,
 #endif
 }
 
-void GraphicInstance::initDeviceAndSwapchain(const Window &window) {
+void GraphicContext::initDeviceAndSwapchain() {
+    const Window &window = App::get().getWindow();
+
     VkSurfaceKHR vkSurfaceKHR{};
     auto result = glfwWrapper([&]() {
         return glfwCreateWindowSurface(static_cast<VkInstance>(*vkInstance_),
@@ -70,12 +72,12 @@ void GraphicInstance::initDeviceAndSwapchain(const Window &window) {
             vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eTransferSrc);
 }
 
-void GraphicInstance::createDepthAndFrameBuffers(const RenderPass &renderPass) {
+void GraphicContext::createDepthAndFrameBuffers(const RenderPass &renderPass) {
     pSwapchain_->createDepthBuffer(*pDevice_);
     pSwapchain_->createFrameBuffers(*pDevice_, renderPass);
 }
 
-void GraphicInstance::recreateSwapchain(const Window &window, const RenderPass &renderPass) {
+void GraphicContext::recreateSwapchain(const Window &window, const RenderPass &renderPass) {
     auto windowExtent = window.getExtent();
     while (windowExtent.width == 0 || windowExtent.height == 0) {
         windowExtent = window.getExtent();
@@ -94,23 +96,23 @@ void GraphicInstance::recreateSwapchain(const Window &window, const RenderPass &
     pSwapchain_->createFrameBuffers(*pDevice_, renderPass);
 }
 
-const vk::raii::Instance &GraphicInstance::get() const noexcept {
+const vk::raii::Instance &GraphicContext::get() const noexcept {
     return vkInstance_;
 }
 
-const Device &GraphicInstance::getDevice() const noexcept {
+const Device &GraphicContext::getDevice() const noexcept {
     return *pDevice_;
 }
 
-const PhysicalDevice &GraphicInstance::getPhysicalDevice() const noexcept {
+const PhysicalDevice &GraphicContext::getPhysicalDevice() const noexcept {
     return *pPhysicalDevice_;
 }
 
-const Surface &GraphicInstance::getSurface() const noexcept {
+const Surface &GraphicContext::getSurface() const noexcept {
     return *pSurface_;
 }
 
-const Swapchain &GraphicInstance::getSwapchain() const noexcept {
+const Swapchain &GraphicContext::getSwapchain() const noexcept {
     return *pSwapchain_;
 }
 
@@ -118,8 +120,8 @@ const Swapchain &GraphicInstance::getSwapchain() const noexcept {
 void Instance::gatherLayers(const std::vector<std::string> &layers) {
 #else
 
-void GraphicInstance::gatherLayers(const std::vector<std::string> &layers,
-                                   const std::vector<vk::LayerProperties> &layerProperties) {
+void GraphicContext::gatherLayers(const std::vector<std::string> &layers,
+                                  const std::vector<vk::LayerProperties> &layerProperties) {
 #endif
     enabledLayers_.reserve(layers.size());
 
@@ -146,8 +148,8 @@ void GraphicInstance::gatherLayers(const std::vector<std::string> &layers,
 void Instance::gatherExtensions(const std::vector<std::string> &extensions) {
 #else
 
-void GraphicInstance::gatherExtensions(const std::vector<std::string> &extensions,
-                                       const std::vector<vk::ExtensionProperties> &extensionProperties) {
+void GraphicContext::gatherExtensions(const std::vector<std::string> &extensions,
+                                      const std::vector<vk::ExtensionProperties> &extensionProperties) {
 #endif
     enabledExtensions_.reserve(extensions.size());
 
@@ -174,14 +176,14 @@ void GraphicInstance::gatherExtensions(const std::vector<std::string> &extension
 #endif
 }
 
-std::vector<std::string> GraphicInstance::getGlfwRequiredExtensions() {
+std::vector<std::string> GraphicContext::getGlfwRequiredExtensions() {
     uint32_t glfwExtensionsCount = 0;
     const char **glfwExtensionName = glfwWrapper(
             [&glfwExtensionsCount]() { return glfwGetRequiredInstanceExtensions(&glfwExtensionsCount); });
     return {glfwExtensionName, glfwExtensionName + glfwExtensionsCount};
 }
 
-std::vector<std::string> GraphicInstance::getSurfacePlatformExtensions() {
+std::vector<std::string> GraphicContext::getSurfacePlatformExtensions() {
     std::vector<std::string> extensions;
     extensions.emplace_back(VK_KHR_SURFACE_EXTENSION_NAME);
 #if defined(VK_USE_PLATFORM_ANDROID_KHR)

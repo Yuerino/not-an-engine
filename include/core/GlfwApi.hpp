@@ -15,8 +15,8 @@ public:
 
     GlfwApi(const GlfwApi &) = delete;
     GlfwApi &operator=(const GlfwApi &) = delete;
-    GlfwApi(GlfwApi &&) = delete;
-    GlfwApi &operator=(GlfwApi &&) = delete;
+    GlfwApi(GlfwApi &&) = default;
+    GlfwApi &operator=(GlfwApi &&) = default;
 };
 
 class GlfwException : public std::exception {

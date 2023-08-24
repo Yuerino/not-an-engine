@@ -3,7 +3,7 @@ set(SOURCE_FILES
     core/App.cpp
     core/Device.cpp
     core/GlfwApi.cpp
-    core/GraphicInstance.cpp
+    core/GraphicContext.cpp
     core/PhysicalDevice.cpp
     core/Scene.cpp
     core/Surface.cpp

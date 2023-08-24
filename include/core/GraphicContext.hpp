@@ -7,6 +7,7 @@
 #include <vulkan/vulkan_raii.hpp>
 
 #include "core/Device.hpp"
+#include "core/GlfwApi.hpp"
 #include "core/PhysicalDevice.hpp"
 #include "core/Surface.hpp"
 #include "core/Swapchain.hpp"
@@ -21,19 +22,19 @@ class PhysicalDevice;
 class Surface;
 class Swapchain;
 
-class GraphicInstance {
+class GraphicContext {
 public:
-    explicit GraphicInstance(const std::vector<std::string> &layers = {},
-                             const std::vector<std::string> &extensions = {},
-                             uint32_t apiVersion = VK_API_VERSION_1_3);
-    ~GraphicInstance() = default;
+    explicit GraphicContext(const std::vector<std::string> &layers = {},
+                            const std::vector<std::string> &extensions = {},
+                            uint32_t apiVersion = VK_API_VERSION_1_3);
+    ~GraphicContext() = default;
 
-    GraphicInstance(const GraphicInstance &) = delete;
-    GraphicInstance &operator=(const GraphicInstance &) = delete;
-    GraphicInstance(GraphicInstance &&) = default;
-    GraphicInstance &operator=(GraphicInstance &&) = default;
+    GraphicContext(const GraphicContext &) = delete;
+    GraphicContext &operator=(const GraphicContext &) = delete;
+    GraphicContext(GraphicContext &&) = default;
+    GraphicContext &operator=(GraphicContext &&) = default;
 
-    void initDeviceAndSwapchain(const Window &window);
+    void initDeviceAndSwapchain();
 
     void createDepthAndFrameBuffers(const RenderPass &renderPass);
 
@@ -90,6 +91,7 @@ private:
                           const std::vector<vk::ExtensionProperties> &extensionProperties);
 #endif
 
+    GlfwApi glfwApi_{};
     vk::raii::Context vkContext_{};
     vk::raii::Instance vkInstance_{nullptr};
     std::unique_ptr<Device> pDevice_;

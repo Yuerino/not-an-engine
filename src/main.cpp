@@ -18,8 +18,8 @@ int main() {
 #endif
 
     try {
-        std::unique_ptr<nae::BasicScene> scene = std::make_unique<nae::BasicScene>();
         nae::App app{};
+        std::unique_ptr<nae::BasicScene> scene = std::make_unique<nae::BasicScene>();
         app.addScene(std::move(scene));
         app.run();
     } catch (const nae::GlfwException &ex) {

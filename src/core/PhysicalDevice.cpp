@@ -8,13 +8,13 @@ namespace nae {
                                                            const vk::raii::SurfaceKHR &vkSurface,
                                                            vk::QueueFlags queueFlags);
 
-PhysicalDevice::PhysicalDevice(const GraphicInstance &graphicInstance,
+PhysicalDevice::PhysicalDevice(const GraphicContext &graphicContext,
                                const std::vector<std::string> &extensions) noexcept
     : extensions_{extensions} {
-    vk::raii::PhysicalDevices physicalDevices(graphicInstance.get());
+    vk::raii::PhysicalDevices physicalDevices(graphicContext.get());
     assert(not physicalDevices.empty() && "Failed to find GPUs (wut)");
 
-    vkPhysicalDevice_ = choosePhysicalDevice(physicalDevices, graphicInstance.getSurface().get());
+    vkPhysicalDevice_ = choosePhysicalDevice(physicalDevices, graphicContext.getSurface().get());
     assert(*vkPhysicalDevice_ && "Failed to find a suitable GPU!");
 }
 

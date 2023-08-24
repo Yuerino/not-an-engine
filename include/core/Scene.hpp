@@ -9,7 +9,7 @@ namespace nae {
 
 class Scene {
 public:
-    Scene() = default;
+    Scene();
     virtual ~Scene() = default;
 
     Scene(const Scene &) = delete;
@@ -17,18 +17,18 @@ public:
     Scene(Scene &&) = default;
     Scene &operator=(Scene &&) = default;
 
-    virtual void onAttach(Renderer &renderer);
+    virtual void onAttach() = 0;
     virtual void onUpdate(Time timestep) = 0;
 
 protected:
-    Renderer *pRenderer_{nullptr};
+    Renderer *pRenderer_;
 };
 
 class BasicScene : public Scene {
 public:
     BasicScene();
 
-    void onAttach(Renderer &renderer) override;
+    void onAttach() override;
     void onUpdate(Time timestep) override;
 
 private:

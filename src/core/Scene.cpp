@@ -3,7 +3,11 @@
 #define TINYOBJLOADER_IMPLEMENTATION
 #include <tiny_obj_loader.h>
 
+#include "core/App.hpp"
+
 namespace nae {
+
+Scene::Scene() : pRenderer_{&App::get().getRenderer()} {}
 
 static std::vector<Vertex> loadModel(const std::string &path) {
     std::vector<Vertex> vertices;
@@ -34,18 +38,12 @@ static std::vector<Vertex> loadModel(const std::string &path) {
     return vertices;
 }
 
-void Scene::onAttach(Renderer &renderer) {
-    pRenderer_ = &renderer;
-}
-
 BasicScene::BasicScene() {
     pVertices_ = std::make_unique<std::vector<Vertex>>(loadModel("C:/Users/yueri/Documents/new_42.obj"));
-}
-
-void BasicScene::onAttach(Renderer &renderer) {
-    Scene::onAttach(renderer);
     pVertexBuffer_ = std::make_unique<Buffer>(pRenderer_->loadVertices(*pVertices_));
 }
+
+void BasicScene::onAttach() {}
 
 void BasicScene::onUpdate(Time timestep) {
     pRenderer_->beginScene();

@@ -17,7 +17,7 @@ public:
     Window(Window &&) = default;
     Window &operator=(Window &&) = default;
 
-    [[nodiscard]] operator GLFWwindow *() const noexcept;
+    [[nodiscard]] explicit operator GLFWwindow *() const noexcept;
 
     [[nodiscard]] bool shouldClose() const noexcept;
 

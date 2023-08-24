@@ -4,6 +4,10 @@ namespace nae {
 
 GlfwApi::GlfwApi() {
     glfwWrapper([]() { glfwInit(); });
+
+    if (glfwVulkanSupported() == GLFW_FALSE) {
+        throw GlfwException{-1, "Vulkan is not supported"};
+    }
 }
 
 GlfwApi::~GlfwApi() {
