@@ -55,4 +55,8 @@ Window::operator GLFWwindow *() const noexcept {
     return glfwWindow_;
 }
 
+float Window::getAspectRatio() const noexcept {
+    return static_cast<float>(extent_.width) / static_cast<float>(extent_.height);
+}
+
 } // namespace nae

@@ -1,9 +1,6 @@
 #include "renderer/Renderer.hpp"
 
-#include <chrono>
 #include <limits>
-
-#include <glm/gtc/matrix_transform.hpp>
 
 #include "core/App.hpp"
 #include "core/util.hpp"
@@ -87,30 +84,14 @@ bool Renderer::beginFrame() {
     return true;
 }
 
-void Renderer::beginScene() {
+void Renderer::beginScene(const Camera &camera) {
     const auto &swapchain = App::get().getGraphicContext().getSwapchain();
 
-    {
-        // TODO: move this mvp outside to scene scope
-        static auto startTime = std::chrono::high_resolution_clock::now();
-        auto currentTime = std::chrono::high_resolution_clock::now();
-        float time = std::chrono::duration<float, std::chrono::seconds::period>(currentTime - startTime).count();
-        MvpMatrices mvpMatrices{
-                //            .model = glm::rotate(glm::mat4(1.0f), time * glm::radians(90.0f), glm::vec3{0.0f, 1.0f,
-                //            0.0f}),
-                .model = glm::mat4(1.0f),
-                .view = glm::lookAt(glm::vec3{0.0f, 0.0f, 5.0f},
-                                    glm::vec3{0.0f, 0.0f, 0.0f},
-                                    glm::vec3{0.0f, 1.0f, 0.0f}),
-                .proj = glm::perspective(glm::radians(45.0f),
-                                         static_cast<float>(swapchain.getExtent().width) /
-                                                 static_cast<float>(swapchain.getExtent().height),
-                                         0.1f,
-                                         100.0f)};
-        mvpMatrices.proj[1][1] *= -1.0f;
-        mvpBuffers_[currentCommandBufferIdx_].writeToMemory(mvpMatrices);
-        mvpBuffers_[currentCommandBufferIdx_].flushMemory();
-    }
+    MvpMatrices mvpMatrices{.model = glm::mat4(1.0f),
+                            .view = camera.getViewMatrix(),
+                            .proj = camera.getProjectionMatrix()};
+    mvpBuffers_[currentCommandBufferIdx_].writeToMemory(mvpMatrices);
+    mvpBuffers_[currentCommandBufferIdx_].flushMemory();
 
     // Bind dynamic view port and scissor
     vk::Viewport viewPort{0.0f,

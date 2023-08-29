@@ -26,11 +26,6 @@ App::~App() {
     pGraphicContext_->getDevice().get().waitIdle();
 }
 
-void App::addScene(std::unique_ptr<Scene> pScene) {
-    scenes_.emplace_back(std::move(pScene));
-    scenes_.back()->onAttach();
-}
-
 void App::run() {
     lastFrameTime_ = Time::now();
     isRunning_ = true;
@@ -39,12 +34,12 @@ void App::run() {
         glfwWrapper([]() { glfwPollEvents(); });
 
         if (not pRenderer_->beginFrame()) {
-            pGraphicContext_->recreateSwapchain(*pWindow_, pRenderer_->getPipeline().getRenderPass());
+            resize();
             continue;
         }
 
         Time currentTime = Time::now();
-        Time timestep{currentTime.getSeconds() - lastFrameTime_.getSeconds()};
+        Time timestep = currentTime - lastFrameTime_;
         lastFrameTime_ = currentTime;
 
         for (auto &pScene: scenes_) {
@@ -52,14 +47,23 @@ void App::run() {
         }
 
         if (not pRenderer_->endFrame() || pWindow_->isFramebufferResized()) {
-            pGraphicContext_->recreateSwapchain(*pWindow_, pRenderer_->getPipeline().getRenderPass());
-            pWindow_->resetFramebufferResized();
+            resize();
         }
     }
 }
 
 void App::close() noexcept {
     isRunning_ = false;
+}
+
+void App::resize() noexcept {
+    pGraphicContext_->recreateSwapchain(*pWindow_, pRenderer_->getPipeline().getRenderPass());
+    pWindow_->resetFramebufferResized();
+
+    float aspect = pWindow_->getAspectRatio();
+    for (auto &pScene: scenes_) {
+        pScene->onResize(aspect);
+    }
 }
 
 } // namespace nae

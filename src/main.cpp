@@ -19,20 +19,19 @@ int main() {
 
     try {
         nae::App app{};
-        std::unique_ptr<nae::BasicScene> scene = std::make_unique<nae::BasicScene>();
-        app.addScene(std::move(scene));
+        app.addScene<nae::BasicScene>();
         app.run();
     } catch (const nae::GlfwException &ex) {
-        std::cerr << "GLFW error code: " << ex.getErrorCode() << ", description: " << ex.what() << std::endl;
+        std::cerr << "GLFW error code: " << ex.getErrorCode() << ", description: " << ex.what() << '\n';
         return EXIT_FAILURE;
     } catch (const vk::Error &ex) {
-        std::cerr << "Vulkan error: " << ex.what() << std::endl;
+        std::cerr << "Vulkan error: " << ex.what() << '\n';
         return EXIT_FAILURE;
     } catch (const std::exception &ex) {
-        std::cerr << ex.what() << std::endl;
+        std::cerr << ex.what() << '\n';
         return EXIT_FAILURE;
     } catch (...) {
-        std::cerr << "Unknown exception" << std::endl;
+        std::cerr << "Unknown exception" << '\n';
         return EXIT_FAILURE;
     }
 

@@ -1,6 +1,7 @@
 set(SOURCE_FILES
     main.cpp
     core/App.cpp
+    core/Camera.cpp
     core/Device.cpp
     core/GlfwApi.cpp
     core/GraphicContext.cpp

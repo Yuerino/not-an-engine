@@ -2,6 +2,7 @@
 
 #include <vulkan/vulkan_raii.hpp>
 
+#include "core/Camera.hpp"
 #include "core/GraphicContext.hpp"
 #include "renderer/Buffer.hpp"
 #include "renderer/Descriptor.hpp"
@@ -20,7 +21,7 @@ public:
     Renderer &operator=(Renderer &&) = default;
 
     bool beginFrame();
-    void beginScene();
+    void beginScene(const Camera &camera);
     void endScene();
     bool endFrame();
 

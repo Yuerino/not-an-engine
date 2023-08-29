@@ -38,15 +38,21 @@ static std::vector<Vertex> loadModel(const std::string &path) {
     return vertices;
 }
 
-BasicScene::BasicScene() {
-    pVertices_ = std::make_unique<std::vector<Vertex>>(loadModel("C:/Users/yueri/Documents/new_42.obj"));
-    pVertexBuffer_ = std::make_unique<Buffer>(pRenderer_->loadVertices(*pVertices_));
-}
+BasicScene::BasicScene()
+    : pCamera_{std::make_shared<Camera>(App::get().getWindow().getAspectRatio())},
+      pCameraController_{std::make_unique<CameraController>(pCamera_)},
+      pVertices_{std::make_unique<std::vector<Vertex>>(loadModel("C:/Users/yueri/Documents/new_42.obj"))},
+      pVertexBuffer_{std::make_unique<Buffer>(pRenderer_->loadVertices(*pVertices_))} {}
 
 void BasicScene::onAttach() {}
 
+void BasicScene::onResize(float aspectRatio) {
+    pCameraController_->onResize(aspectRatio);
+}
+
 void BasicScene::onUpdate(Time timestep) {
-    pRenderer_->beginScene();
+    pCameraController_->onUpdate(timestep);
+    pRenderer_->beginScene(*pCamera_);
     pRenderer_->draw(*pVertexBuffer_, pVertices_->size());
     pRenderer_->endScene();
 }

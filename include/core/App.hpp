@@ -27,10 +27,15 @@ public:
     App(App &&) = delete;
     App &operator=(App &&) = delete;
 
-    void addScene(std::unique_ptr<Scene> pScene);
+    template<typename SceneType, typename... Args>
+        requires std::derived_from<SceneType, Scene>
+    void addScene(Args &&...args) {
+        scenes_.emplace_back(std::make_unique<SceneType>(std::forward<Args>(args)...));
+    }
 
     void run();
     void close() noexcept;
+    void resize() noexcept;
 
     [[nodiscard]] static App &get() noexcept { return *pAppInstance_; }
     [[nodiscard]] GraphicContext &getGraphicContext() noexcept { return *pGraphicContext_; }

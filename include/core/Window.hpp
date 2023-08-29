@@ -22,6 +22,7 @@ public:
     [[nodiscard]] bool shouldClose() const noexcept;
 
     [[nodiscard]] const vk::Extent2D &getExtent() const noexcept;
+    [[nodiscard]] float getAspectRatio() const noexcept;
     [[nodiscard]] bool isFramebufferResized() const noexcept;
     void resetFramebufferResized() noexcept;
 
