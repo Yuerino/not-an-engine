@@ -52,14 +52,4 @@ void *Buffer::getMappedMemory() const noexcept {
     return mappedMemory_;
 }
 
-std::array<vk::VertexInputBindingDescription, 1> Vertex::getBindingDescriptions() {
-    return {vk::VertexInputBindingDescription{0, sizeof(Vertex), vk::VertexInputRate::eVertex}};
-}
-
-std::vector<vk::VertexInputAttributeDescription> Vertex::getAttributeDescriptions() {
-    return {vk::VertexInputAttributeDescription{0, 0, vk::Format::eR32G32B32Sfloat, offsetof(Vertex, position)},
-            vk::VertexInputAttributeDescription{1, 0, vk::Format::eR32G32B32Sfloat, offsetof(Vertex, color)},
-            vk::VertexInputAttributeDescription{2, 0, vk::Format::eR32G32B32Sfloat, offsetof(Vertex, normal)}};
-}
-
 } // namespace nae

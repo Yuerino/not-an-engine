@@ -3,6 +3,7 @@ set(SOURCE_FILES
     core/App.cpp
     core/Camera.cpp
     core/Device.cpp
+    core/Entity.cpp
     core/GlfwApi.cpp
     core/GraphicContext.cpp
     core/PhysicalDevice.cpp

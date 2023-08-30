@@ -31,6 +31,7 @@ public:
         requires std::derived_from<SceneType, Scene>
     void addScene(Args &&...args) {
         scenes_.emplace_back(std::make_unique<SceneType>(std::forward<Args>(args)...));
+        scenes_.back()->onAttach();
     }
 
     void run();

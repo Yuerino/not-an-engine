@@ -87,9 +87,7 @@ bool Renderer::beginFrame() {
 void Renderer::beginScene(const Camera &camera) {
     const auto &swapchain = App::get().getGraphicContext().getSwapchain();
 
-    MvpMatrices mvpMatrices{.model = glm::mat4(1.0f),
-                            .view = camera.getViewMatrix(),
-                            .proj = camera.getProjectionMatrix()};
+    MvpMatrices mvpMatrices{.view = camera.getViewMatrix(), .proj = camera.getProjectionMatrix()};
     mvpBuffers_[currentCommandBufferIdx_].writeToMemory(mvpMatrices);
     mvpBuffers_[currentCommandBufferIdx_].flushMemory();
 
@@ -136,17 +134,6 @@ void Renderer::endScene() {
                                                               std::numeric_limits<uint64_t>::max())) {}
 }
 
-Buffer Renderer::loadVertices(const std::vector<Vertex> &vertices) {
-    const auto &device = App::get().getGraphicContext().getDevice();
-
-    Buffer verticesBuffer = {device,
-                             sizeof(Vertex) * vertices.size(),
-                             vk::BufferUsageFlagBits::eVertexBuffer | vk::BufferUsageFlagBits::eTransferDst,
-                             vk::MemoryPropertyFlagBits::eDeviceLocal};
-    verticesBuffer.copyToDeviceMemory(*pVkCommandPool_, device.getGraphicQueue(), vertices);
-    return verticesBuffer;
-}
-
 bool Renderer::endFrame() {
     const auto &device = App::get().getGraphicContext().getDevice();
     const auto &swapchain = App::get().getGraphicContext().getSwapchain();
@@ -168,9 +155,17 @@ bool Renderer::endFrame() {
     return true;
 }
 
-void Renderer::draw(const Buffer &buffer, uint32_t vertexCount) {
-    (*pVkCommandBuffers_)[currentCommandBufferIdx_].bindVertexBuffers(0, {*buffer.get()}, {0});
-    (*pVkCommandBuffers_)[currentCommandBufferIdx_].draw(vertexCount, 1, 0, 0);
+void Renderer::draw(const Entity &entity) {
+    // TODO: support index draw
+    PushConstantModel model{.model = entity.getTransform().getTransform()};
+    (*pVkCommandBuffers_)[currentCommandBufferIdx_].pushConstants<PushConstantModel>(*pPipeline_->getLayout(),
+                                                                                     vk::ShaderStageFlagBits::eVertex,
+                                                                                     0,
+                                                                                     model);
+    (*pVkCommandBuffers_)[currentCommandBufferIdx_].bindVertexBuffers(0,
+                                                                      {*entity.getModel().getVertexBuffer().get()},
+                                                                      {0});
+    (*pVkCommandBuffers_)[currentCommandBufferIdx_].draw(entity.getModel().getVertices().size(), 1, 0, 0);
 }
 
 } // namespace nae

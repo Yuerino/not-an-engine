@@ -1,6 +1,6 @@
 #include "renderer/Pipeline.hpp"
 
-#include "renderer/Buffer.hpp"
+#include "core/Entity.hpp"
 
 namespace nae {
 
@@ -25,8 +25,8 @@ Pipeline::Pipeline(const Device &device,
                                               nullptr}};
 
     // Vertex input empty for now because hard coded in shader
-    auto bindingDescriptions = Vertex::getBindingDescriptions();
-    auto attributeDescriptions = Vertex::getAttributeDescriptions();
+    auto bindingDescriptions = Model::Vertex::getBindingDescriptions();
+    auto attributeDescriptions = Model::Vertex::getAttributeDescriptions();
     vk::PipelineVertexInputStateCreateInfo pipelineVertexInputStateCreateInfo{vk::PipelineVertexInputStateCreateFlags{},
                                                                               bindingDescriptions,
                                                                               attributeDescriptions};
@@ -101,8 +101,13 @@ Pipeline::Pipeline(const Device &device,
                                                                             pipelineColorBlendAttachmentState,
                                                                             {{0.0f, 0.0f, 0.0f, 0.0f}}};
 
+    // Push constant range
+    vk::PushConstantRange pushConstantRange{vk::ShaderStageFlagBits::eVertex, 0, sizeof(PushConstantModel)};
+
     // Pipeline layout
-    vk::PipelineLayoutCreateInfo pipelineLayoutCreateInfo{vk::PipelineLayoutCreateFlags{}, *descriptorSetLayout.get()};
+    vk::PipelineLayoutCreateInfo pipelineLayoutCreateInfo{vk::PipelineLayoutCreateFlags{},
+                                                          *descriptorSetLayout.get(),
+                                                          pushConstantRange};
     vkPipelineLayout_ = vk::raii::PipelineLayout{device.get(), pipelineLayoutCreateInfo};
 
     // Pipeline cache

@@ -3,6 +3,7 @@
 #include <vulkan/vulkan_raii.hpp>
 
 #include "core/Camera.hpp"
+#include "core/Entity.hpp"
 #include "core/GraphicContext.hpp"
 #include "renderer/Buffer.hpp"
 #include "renderer/Descriptor.hpp"
@@ -25,10 +26,10 @@ public:
     void endScene();
     bool endFrame();
 
-    Buffer loadVertices(const std::vector<Vertex> &vertices);
-    void draw(const Buffer &buffer, uint32_t vertexCount);
+    void draw(const Entity &entity);
 
     [[nodiscard]] Pipeline &getPipeline() const noexcept { return *pPipeline_; };
+    [[nodiscard]] const vk::raii::CommandPool &getVkCommandPool() const noexcept { return *pVkCommandPool_; };
 
 private:
     static constexpr uint32_t MAX_FRAMES_IN_FLIGHT = 2;

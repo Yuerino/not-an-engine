@@ -3,6 +3,7 @@
 #include <cstdint>
 
 #include "core/Camera.hpp"
+#include "core/Entity.hpp"
 #include "core/Time.hpp"
 #include "renderer/Renderer.hpp"
 
@@ -37,8 +38,7 @@ public:
 private:
     std::shared_ptr<Camera> pCamera_;
     std::unique_ptr<CameraController> pCameraController_;
-    std::unique_ptr<std::vector<Vertex>> pVertices_;
-    std::unique_ptr<Buffer> pVertexBuffer_;
+    std::vector<std::unique_ptr<Entity>> entities_;
 };
 
 } // namespace nae

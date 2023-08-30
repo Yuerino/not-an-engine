@@ -55,7 +55,7 @@ private:
     float cameraRotSpeed_;
 
     glm::vec3 cameraRotation_{0.0f, -glm::half_pi<float>(), 0.0f};
-    glm::vec3 cameraPosition_{0.0f, 0.0f, 5.0f};
+    glm::vec3 cameraPosition_{0.0f, 5.0f, 5.0f};
 };
 
 } // namespace nae

@@ -109,19 +109,13 @@ private:
     vk::MemoryPropertyFlags propertyFlags_;
 };
 
-struct Vertex {
-    glm::vec3 position;
-    glm::vec3 color;
-    glm::vec3 normal;
-
-    [[nodiscard]] static std::array<vk::VertexInputBindingDescription, 1> getBindingDescriptions();
-    [[nodiscard]] static std::vector<vk::VertexInputAttributeDescription> getAttributeDescriptions();
-};
-
 struct MvpMatrices {
-    alignas(16) glm::mat4 model;
     alignas(16) glm::mat4 view;
     alignas(16) glm::mat4 proj;
+};
+
+struct PushConstantModel {
+    alignas(16) glm::mat4 model;
 };
 
 } // namespace nae
