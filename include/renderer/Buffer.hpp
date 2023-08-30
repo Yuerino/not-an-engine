@@ -112,9 +112,10 @@ private:
 struct Vertex {
     glm::vec3 position;
     glm::vec3 color;
+    glm::vec3 normal;
 
     [[nodiscard]] static std::array<vk::VertexInputBindingDescription, 1> getBindingDescriptions();
-    [[nodiscard]] static std::array<vk::VertexInputAttributeDescription, 2> getAttributeDescriptions();
+    [[nodiscard]] static std::vector<vk::VertexInputAttributeDescription> getAttributeDescriptions();
 };
 
 struct MvpMatrices {
@@ -123,4 +124,4 @@ struct MvpMatrices {
     alignas(16) glm::mat4 proj;
 };
 
-} // namespace nae::graphic
+} // namespace nae
