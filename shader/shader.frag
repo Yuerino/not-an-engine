@@ -10,7 +10,7 @@ layout (location = 3) in vec2 inTexCoord;
 layout (location = 0) out vec4 outColor;
 
 const vec3 lightPos = vec3(10.0, 10.0, 10.0);
-const float ambient = 0.02f;
+const float ambient = 0.1f;
 
 void main()
 {
@@ -20,6 +20,5 @@ void main()
 
     float lightIntensity = max(dot(normal, lightDir), 0.0);
 
-    //    outColor = vec4((ambient + lightIntensity) * texture(texSampler, inTexCoord), 1.0);
-    outColor = texture(texSampler, inTexCoord);
+    outColor = vec4((ambient + lightIntensity) * texture(texSampler, inTexCoord).xyz, 1.0);
 }
