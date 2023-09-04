@@ -1,87 +1,40 @@
-#ifndef NOT_AN_ENGINE_GRAPHIC_TEXTUREDATA_HPP
-#define NOT_AN_ENGINE_GRAPHIC_TEXTUREDATA_HPP
+#pragma once
+
+#include <memory>
+#include <string>
 
 #include <vulkan/vulkan.hpp>
 #include <vulkan/vulkan_raii.hpp>
 
-#include "Buffer.hpp"
-#include "CommandBuffer.hpp"
-#include "Image.hpp"
-#include "core/Device.hpp"
+#include "renderer/Descriptor.hpp"
+#include "renderer/Image.hpp"
 
-namespace nae::graphic {
+namespace nae {
 
-class TextureData {
+class Texture {
 public:
-    TextureData(const vk::raii::PhysicalDevice &physicalDevice,
-                const Device &device,
-                const vk::Extent2D &extent_ = {256, 256},
-                vk::ImageUsageFlags usageFlags = {},
-                vk::FormatFeatureFlags formatFeatureFlags = {},
-                bool anisotropyEnable = false,
-                bool forceStaging = false);
+    explicit Texture(const vk::Extent2D &extent_ = {256, 256},
+                     vk::ImageUsageFlags usageFlags = {},
+                     vk::FormatFeatureFlags formatFeatureFlags = {},
+                     bool forceStaging = false);
+    ~Texture() = default;
 
-    template<typename ImageGenerator>
-    void setImage(const vk::raii::CommandBuffer &commandBuffer, const ImageGenerator &imageGenerator) {
-        void *data = needStaging_
-                             ? stagingBufferData_.deviceMemory_.copyToMemory(
-                                       0,
-                                       stagingBufferData_.buffer_.getMemoryRequirements().size)
-                             : imageData_.deviceMemory_.mapMemory(0, imageData_.image_.getMemoryRequirements().size);
-        imageGenerator(data, extent_);
-        needStaging_ ? stagingBufferData_.deviceMemory_.unmapMemory() : imageData_.deviceMemory_.unmapMemory();
+    Texture(const Texture &) = delete;
+    Texture &operator=(const Texture &) = delete;
+    Texture(Texture &&) = default;
+    Texture &operator=(Texture &&) = default;
 
-        if (needStaging_) {
-            // Since we're going to blit to the texture image, set its layout to eTransferDstOptimal
-            setImageLayout(commandBuffer,
-                           *imageData_.image_,
-                           imageData_.format_,
-                           vk::ImageLayout::eUndefined,
-                           vk::ImageLayout::eTransferDstOptimal);
-            vk::BufferImageCopy copyRegion{0,
-                                           extent_.width,
-                                           extent_.height,
-                                           vk::ImageSubresourceLayers{vk::ImageAspectFlagBits::eColor, 0, 0, 1},
-                                           vk::Offset3D{0, 0, 0},
-                                           vk::Extent3D{extent_, 1}};
-            commandBuffer.copyBufferToImage(*stagingBufferData_.buffer_,
-                                            *imageData_.image_,
-                                            vk::ImageLayout::eTransferDstOptimal,
-                                            copyRegion);
-            // Set the layout for the texture image from eTransferDstOptimal to eShaderReadOnlyOptimal
-            setImageLayout(commandBuffer,
-                           *imageData_.image_,
-                           imageData_.format_,
-                           vk::ImageLayout::eTransferDstOptimal,
-                           vk::ImageLayout::eShaderReadOnlyOptimal);
-        } else {
-            // If we can use the linear tiled image as a texture, just do it
-            setImageLayout(commandBuffer,
-                           *imageData_.image_,
-                           imageData_.format_,
-                           vk::ImageLayout::ePreinitialized,
-                           vk::ImageLayout::eShaderReadOnlyOptimal);
-        }
-    }
+    void setTexels(const std::string &texelPath);
 
-    friend void updateDescriptorSets(const vk::raii::Device &device,
-                                     const vk::raii::DescriptorSet &descriptorSet,
-                                     const std::vector<std::tuple<vk::DescriptorType,
-                                                                  const vk::raii::Buffer &,
-                                                                  vk::DeviceSize,
-                                                                  const vk::raii::BufferView *>> &bufferData,
-                                     const std::vector<TextureData> &textureData,
-                                     uint32_t bindingOffset);
+    [[nodiscard]] const DescriptorSets &getDescriptorSets() const noexcept { return *pDescriptorSets_; };
 
 private:
     vk::Format format_;
     vk::Extent2D extent_;
-    bool needStaging_;
-    BufferData stagingBufferData_{nullptr};
-    Image imageData_{nullptr};
-    vk::raii::Sampler vkSampler_;
+
+    bool needStaging_{false};
+    std::unique_ptr<Image> pTextureImage_;
+    std::unique_ptr<DescriptorSets> pDescriptorSets_;
 };
 
-} // namespace nae::graphic
-
-#endif // NOT_AN_ENGINE_GRAPHIC_TEXTUREDATA_HPP
+} // namespace nae

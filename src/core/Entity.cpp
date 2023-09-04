@@ -16,7 +16,8 @@ std::array<vk::VertexInputBindingDescription, 1> Model::Vertex::getBindingDescri
 std::vector<vk::VertexInputAttributeDescription> Model::Vertex::getAttributeDescriptions() {
     return {vk::VertexInputAttributeDescription{0, 0, vk::Format::eR32G32B32Sfloat, offsetof(Vertex, position)},
             vk::VertexInputAttributeDescription{1, 0, vk::Format::eR32G32B32Sfloat, offsetof(Vertex, color)},
-            vk::VertexInputAttributeDescription{2, 0, vk::Format::eR32G32B32Sfloat, offsetof(Vertex, normal)}};
+            vk::VertexInputAttributeDescription{2, 0, vk::Format::eR32G32B32Sfloat, offsetof(Vertex, normal)},
+            vk::VertexInputAttributeDescription{3, 0, vk::Format::eR32G32Sfloat, offsetof(Vertex, texCoord)}};
 }
 
 Model::Model(const std::string &filePath) : filePath_{filePath} {
@@ -47,6 +48,12 @@ Model::Model(const std::string &filePath) : filePath_{filePath} {
                                  attrib.normals[3 * index.normal_index + 2]};
             }
 
+            if (index.texcoord_index >= 0) {
+                vertex.texCoord = {
+                        attrib.texcoords[2 * index.texcoord_index + 0],
+                        attrib.texcoords[2 * index.texcoord_index + 1],
+                };
+            }
             vertices_.push_back(vertex);
             // ignore index for now
         }

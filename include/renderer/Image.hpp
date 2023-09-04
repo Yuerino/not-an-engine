@@ -21,7 +21,9 @@ public:
           vk::ImageAspectFlags aspectMask = vk::ImageAspectFlagBits::eColor);
 
     [[nodiscard]] const vk::raii::Image &get() const noexcept;
+    [[nodiscard]] const vk::raii::DeviceMemory &getDeviceMemory() const noexcept { return deviceMemory_; }
     [[nodiscard]] const vk::raii::ImageView &getImageView() const noexcept;
+    [[nodiscard]] vk::Format getFormat() const noexcept { return format_; }
 
 private:
     vk::Format format_{};

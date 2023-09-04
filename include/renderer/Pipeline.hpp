@@ -14,7 +14,6 @@ class Pipeline {
 public:
     Pipeline(const Device &device,
              const Swapchain &swapChain,
-             const DescriptorSetLayout &descriptorSetLayout,
              const std::string &vertexShaderPath,
              const std::string &fragmentShaderPath);
     ~Pipeline() = default;

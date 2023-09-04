@@ -26,8 +26,14 @@ Device::Device(const PhysicalDevice &physicalDevice, const Surface &surface) : p
                                                      graphicQueueFamilyIndex_,
                                                      1,
                                                      &queuePriority};
-    // TODO: pass physical device features
-    vk::DeviceCreateInfo deviceCreateInfo{vk::DeviceCreateFlags{}, deviceQueueCreateInfos, {}, enabledExtensions};
+    // TODO: check and pass physical device features
+    vk::PhysicalDeviceFeatures physicalDeviceFeatures{};
+    physicalDeviceFeatures.samplerAnisotropy = VK_TRUE;
+    vk::DeviceCreateInfo deviceCreateInfo{vk::DeviceCreateFlags{},
+                                          deviceQueueCreateInfos,
+                                          {},
+                                          enabledExtensions,
+                                          &physicalDeviceFeatures};
 
     vkDevice_ = vk::raii::Device{pPhysicalDevice_->get(), deviceCreateInfo};
 

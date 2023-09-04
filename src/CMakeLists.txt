@@ -18,7 +18,8 @@ set(SOURCE_FILES
     renderer/Pipeline.cpp
     renderer/Renderer.cpp
     renderer/RenderPass.cpp
-    renderer/Shader.cpp)
+    renderer/Shader.cpp
+    renderer/Texture.cpp)
 
 find_package(glfw3 3.3 CONFIG QUIET)
 if (NOT glfw3_FOUND)
@@ -54,6 +55,7 @@ target_compile_definitions(not-an-engine
 target_include_directories(not-an-engine
     PRIVATE
     ${PROJECT_SOURCE_DIR}/dependency/tinyobjloader
+    ${PROJECT_SOURCE_DIR}/dependency/stb
     PUBLIC
     ${PROJECT_SOURCE_DIR}/include)
 

@@ -6,7 +6,6 @@ namespace nae {
 
 Pipeline::Pipeline(const Device &device,
                    const Swapchain &swapChain,
-                   const DescriptorSetLayout &descriptorSetLayout,
                    const std::string &vertexShaderPath,
                    const std::string &fragmentShaderPath) {
     // Shader
@@ -104,9 +103,19 @@ Pipeline::Pipeline(const Device &device,
     // Push constant range
     vk::PushConstantRange pushConstantRange{vk::ShaderStageFlagBits::eVertex, 0, sizeof(PushConstantModel)};
 
+    // Descriptor set layout
+    DescriptorSetLayout uboDescriptorSetLayout{
+            device,
+            {{0, vk::DescriptorType::eUniformBuffer, 1, vk::ShaderStageFlagBits::eVertex}}};
+    DescriptorSetLayout samplerDescriptorSetLayout{
+            device,
+            {{0, vk::DescriptorType::eCombinedImageSampler, 1, vk::ShaderStageFlagBits::eFragment}}};
+
+    std::array<vk::DescriptorSetLayout, 2> descriptorSetLayouts = {*uboDescriptorSetLayout.get(),
+                                                                   *samplerDescriptorSetLayout.get()};
     // Pipeline layout
     vk::PipelineLayoutCreateInfo pipelineLayoutCreateInfo{vk::PipelineLayoutCreateFlags{},
-                                                          *descriptorSetLayout.get(),
+                                                          descriptorSetLayouts,
                                                           pushConstantRange};
     vkPipelineLayout_ = vk::raii::PipelineLayout{device.get(), pipelineLayoutCreateInfo};
 

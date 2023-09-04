@@ -1,5 +1,7 @@
 #include "core/Scene.hpp"
 
+#include "vulkan/vulkan.hpp"
+
 #include "core/App.hpp"
 
 namespace nae {
@@ -12,12 +14,20 @@ BasicScene::BasicScene()
     // 0 : floor
     entities_.emplace_back(std::make_unique<Entity>(
             std::make_unique<Model>("C:/Users/yueri/Documents/Project/not-an-engine/model/floor.obj")));
+    pFloorTexture_ = std::make_unique<Texture>(vk::Extent2D{1024, 1024});
+    pFloorTexture_->setTexels("C:/Users/yueri/Documents/Project/not-an-engine/model/PavingStones135_1K.png");
+
     // 1: 42 Obj
     entities_.emplace_back(std::make_unique<Entity>(
             std::make_unique<Model>("C:/Users/yueri/Documents/Project/not-an-engine/model/forty_two.obj")));
+    p42Texture_ = std::make_unique<Texture>(vk::Extent2D{1024, 1024});
+    p42Texture_->setTexels("C:/Users/yueri/Documents/Project/not-an-engine/model/Concrete042A_1K.png");
+
     // 2 : vase
     entities_.emplace_back(std::make_unique<Entity>(
             std::make_unique<Model>("C:/Users/yueri/Documents/Project/not-an-engine/model/vase.obj")));
+    pVaseTexture_ = std::make_unique<Texture>(vk::Extent2D{1024, 1024});
+    pVaseTexture_->setTexels("C:/Users/yueri/Documents/Project/not-an-engine/model/Wood054_1K.png");
 }
 
 void BasicScene::onAttach() {
@@ -44,11 +54,9 @@ void BasicScene::onResize(float aspectRatio) {
 void BasicScene::onUpdate(Time timestep) {
     pCameraController_->onUpdate(timestep);
     pRenderer_->beginScene(*pCamera_);
-    for (auto &entity: entities_) {
-        if (entity->hasModel()) {
-            pRenderer_->draw(*entity);
-        }
-    }
+    pRenderer_->draw(*entities_[0], *pFloorTexture_);
+    pRenderer_->draw(*entities_[1], *p42Texture_);
+    pRenderer_->draw(*entities_[2], *pVaseTexture_);
     pRenderer_->endScene();
 }
 

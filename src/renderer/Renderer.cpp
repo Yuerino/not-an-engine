@@ -13,15 +13,11 @@ Renderer::Renderer() {
 
     pDescriptorPool_ = std::make_unique<DescriptorPool>(
             device,
-            std::initializer_list<vk::DescriptorPoolSize>{{vk::DescriptorType::eUniformBuffer, MAX_FRAMES_IN_FLIGHT}});
-    pDescriptorSetLayout_ = std::make_unique<DescriptorSetLayout>(
-            device,
-            std::initializer_list<vk::DescriptorSetLayoutBinding>{
-                    {0, vk::DescriptorType::eUniformBuffer, 1, vk::ShaderStageFlagBits::eVertex}});
+            std::initializer_list<vk::DescriptorPoolSize>{{vk::DescriptorType::eUniformBuffer, MAX_FRAMES_IN_FLIGHT},
+                                                          {vk::DescriptorType::eCombinedImageSampler, 10}});
 
     pPipeline_ = std::make_unique<Pipeline>(device,
                                             graphicContext.getSwapchain(),
-                                            *pDescriptorSetLayout_,
                                             util::vertShaderPath,
                                             util::fragShaderPath);
 
@@ -39,9 +35,31 @@ Renderer::Renderer() {
         mvpBuffers_[i].mapMemory();
     }
 
-    std::vector<vk::DescriptorSetLayout> vkDescriptorSetLayouts(MAX_FRAMES_IN_FLIGHT, *pDescriptorSetLayout_->get());
+    DescriptorSetLayout uboDescriptorSetLayout{
+            device,
+            {{0, vk::DescriptorType::eUniformBuffer, 1, vk::ShaderStageFlagBits::eVertex}}};
+    std::vector<vk::DescriptorSetLayout> vkDescriptorSetLayouts(MAX_FRAMES_IN_FLIGHT, *uboDescriptorSetLayout.get());
     pDescriptorSets_ = std::make_unique<DescriptorSets>(device, *pDescriptorPool_, vkDescriptorSetLayouts);
     pDescriptorSets_->update(mvpBuffers_);
+
+    // TODO: check max anisotropy filter sampler
+    pVkSampler_ = std::make_unique<vk::raii::Sampler>(device.get(),
+                                                      vk::SamplerCreateInfo{vk::SamplerCreateFlags{},
+                                                                            vk::Filter::eLinear,
+                                                                            vk::Filter::eLinear,
+                                                                            vk::SamplerMipmapMode::eLinear,
+                                                                            vk::SamplerAddressMode::eRepeat,
+                                                                            vk::SamplerAddressMode::eRepeat,
+                                                                            vk::SamplerAddressMode::eRepeat,
+                                                                            0.0f,
+                                                                            true,
+                                                                            16.0f,
+                                                                            false,
+                                                                            vk::CompareOp::eAlways,
+                                                                            0.0f,
+                                                                            0.0f,
+                                                                            vk::BorderColor::eFloatOpaqueWhite,
+                                                                            false});
 
     imageAcquiredSemaphores_.reserve(MAX_FRAMES_IN_FLIGHT);
     renderFinishedSemaphores_.reserve(MAX_FRAMES_IN_FLIGHT);
@@ -81,6 +99,9 @@ bool Renderer::beginFrame() {
                                                 clearValues};
     (*pVkCommandBuffers_)[currentCommandBufferIdx_].beginRenderPass(renderPassBeginInfo, vk::SubpassContents::eInline);
 
+    // Clear descriptor sets to bind
+    descriptorSetsToBind_.clear();
+
     return true;
 }
 
@@ -105,12 +126,8 @@ void Renderer::beginScene(const Camera &camera) {
     // Bind pipeline
     (*pVkCommandBuffers_)[currentCommandBufferIdx_].bindPipeline(vk::PipelineBindPoint::eGraphics, *pPipeline_->get());
 
-    // Bind descriptor set
-    (*pVkCommandBuffers_)[currentCommandBufferIdx_].bindDescriptorSets(vk::PipelineBindPoint::eGraphics,
-                                                                       *pPipeline_->getLayout(),
-                                                                       0,
-                                                                       {*(*pDescriptorSets_)[currentCommandBufferIdx_]},
-                                                                       {});
+    // Add camera descriptor set to bind
+    descriptorSetsToBind_.emplace_back(*(*pDescriptorSets_)[currentCommandBufferIdx_]);
 }
 
 void Renderer::endScene() {
@@ -155,7 +172,15 @@ bool Renderer::endFrame() {
     return true;
 }
 
-void Renderer::draw(const Entity &entity) {
+void Renderer::draw(const Entity &entity, const Texture &texture) {
+    // Bind descriptor set
+    descriptorSetsToBind_.emplace_back(*texture.getDescriptorSets().get()[0]);
+    (*pVkCommandBuffers_)[currentCommandBufferIdx_].bindDescriptorSets(vk::PipelineBindPoint::eGraphics,
+                                                                       *pPipeline_->getLayout(),
+                                                                       0,
+                                                                       descriptorSetsToBind_,
+                                                                       {});
+
     // TODO: support index draw
     PushConstantModel model{.model = entity.getTransform().getTransform()};
     (*pVkCommandBuffers_)[currentCommandBufferIdx_].pushConstants<PushConstantModel>(*pPipeline_->getLayout(),
@@ -166,6 +191,7 @@ void Renderer::draw(const Entity &entity) {
                                                                       {*entity.getModel().getVertexBuffer().get()},
                                                                       {0});
     (*pVkCommandBuffers_)[currentCommandBufferIdx_].draw(entity.getModel().getVertices().size(), 1, 0, 0);
+    descriptorSetsToBind_.pop_back();
 }
 
 } // namespace nae

@@ -68,4 +68,4 @@ const vk::raii::DescriptorSet &DescriptorSets::operator[](size_t idx) const noex
     return vkDescriptorSets_[idx];
 }
 
-} // namespace nae::graphic
+} // namespace nae

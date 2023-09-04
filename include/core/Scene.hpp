@@ -6,6 +6,7 @@
 #include "core/Entity.hpp"
 #include "core/Time.hpp"
 #include "renderer/Renderer.hpp"
+#include "renderer/Texture.hpp"
 
 namespace nae {
 
@@ -39,6 +40,9 @@ private:
     std::shared_ptr<Camera> pCamera_;
     std::unique_ptr<CameraController> pCameraController_;
     std::vector<std::unique_ptr<Entity>> entities_;
+    std::unique_ptr<Texture> pFloorTexture_;
+    std::unique_ptr<Texture> p42Texture_;
+    std::unique_ptr<Texture> pVaseTexture_;
 };
 
 } // namespace nae

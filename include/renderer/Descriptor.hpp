@@ -66,4 +66,4 @@ private:
     vk::raii::DescriptorSets vkDescriptorSets_{nullptr};
 };
 
-} // namespace nae::graphic
+} // namespace nae
