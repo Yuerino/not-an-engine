@@ -1,4 +1,4 @@
-#include "core/Entity.hpp"
+#include "scene/Model.hpp"
 
 #include <unordered_map>
 
@@ -8,7 +8,6 @@
 #include "core/App.hpp"
 
 namespace nae {
-
 std::array<vk::VertexInputBindingDescription, 1> Model::Vertex::getBindingDescriptions() {
     return {vk::VertexInputBindingDescription{0, sizeof(Vertex), vk::VertexInputRate::eVertex}};
 }
@@ -68,5 +67,4 @@ Model::Model(const std::string &filePath) : filePath_{filePath} {
             vk::MemoryPropertyFlagBits::eDeviceLocal);
     pVertexBuffer_->copyToDeviceMemory(vkCommandPool_, device.getGraphicQueue(), vertices_);
 }
-
 } // namespace nae

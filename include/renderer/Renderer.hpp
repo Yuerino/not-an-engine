@@ -2,13 +2,11 @@
 
 #include <vulkan/vulkan_raii.hpp>
 
-#include "core/Camera.hpp"
-#include "core/Entity.hpp"
-#include "core/GraphicContext.hpp"
+#include "core/Time.hpp"
 #include "renderer/Buffer.hpp"
 #include "renderer/Descriptor.hpp"
 #include "renderer/Pipeline.hpp"
-#include "renderer/Texture.hpp"
+#include "scene/Mesh.hpp"
 
 namespace nae {
 
@@ -22,17 +20,23 @@ public:
     Renderer(Renderer &&) = default;
     Renderer &operator=(Renderer &&) = default;
 
-    bool beginFrame();
-    void beginScene(const Camera &camera);
-    void endScene();
-    bool endFrame();
-
-    void draw(const Entity &entity, const Texture &texture);
+    bool onRender();
 
     [[nodiscard]] Pipeline &getPipeline() const noexcept { return *pPipeline_; };
     [[nodiscard]] const DescriptorPool &getDescriptorPool() const noexcept { return *pDescriptorPool_; };
     [[nodiscard]] const vk::raii::CommandPool &getVkCommandPool() const noexcept { return *pVkCommandPool_; };
     [[nodiscard]] const vk::raii::Sampler &getVkSampler() const noexcept { return *pVkSampler_; };
+
+private:
+    bool beginFrame();
+    bool endFrame();
+
+    void startRenderPass();
+    void endRenderPass();
+
+    void renderMeshes();
+
+    void draw(const Mesh &mesh);
 
 private:
     static constexpr uint32_t MAX_FRAMES_IN_FLIGHT = 2;

@@ -9,6 +9,7 @@ App *App::pAppInstance_{nullptr};
 
 App::App(AppConfig appConfig) : appConfig_{std::move(appConfig)} {
     assert(pAppInstance_ == nullptr && "App already exists!");
+
     pAppInstance_ = this;
 
     pGraphicContext_ = std::make_unique<GraphicContext>();
@@ -33,20 +34,14 @@ void App::run() {
     while (isRunning_ && not pWindow_->shouldClose()) {
         glfwWrapper([]() { glfwPollEvents(); });
 
-        if (not pRenderer_->beginFrame()) {
-            resize();
-            continue;
-        }
-
         Time currentTime = Time::now();
         Time timestep = currentTime - lastFrameTime_;
         lastFrameTime_ = currentTime;
 
-        for (auto &pScene: scenes_) {
-            pScene->onUpdate(timestep);
-        }
+        pActiveScene_->onUpdate(timestep);
 
-        if (not pRenderer_->endFrame() || pWindow_->isFramebufferResized()) {
+        if (not pRenderer_->onRender()) {
+            // TODO: refactor resize
             resize();
         }
     }
@@ -59,11 +54,6 @@ void App::close() noexcept {
 void App::resize() noexcept {
     pGraphicContext_->recreateSwapchain(*pWindow_, pRenderer_->getPipeline().getRenderPass());
     pWindow_->resetFramebufferResized();
-
-    float aspect = pWindow_->getAspectRatio();
-    for (auto &pScene: scenes_) {
-        pScene->onResize(aspect);
-    }
 }
 
 } // namespace nae

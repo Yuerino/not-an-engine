@@ -1,16 +1,14 @@
 set(SOURCE_FILES
     main.cpp
     core/App.cpp
-    core/Camera.cpp
     core/Device.cpp
-    core/Entity.cpp
     core/GlfwApi.cpp
     core/GraphicContext.cpp
     core/PhysicalDevice.cpp
-    core/Scene.cpp
     core/Surface.cpp
     core/Swapchain.cpp
     core/Window.cpp
+
     renderer/Buffer.cpp
     renderer/CommandBuffer.cpp
     renderer/Descriptor.cpp
@@ -19,7 +17,18 @@ set(SOURCE_FILES
     renderer/Renderer.cpp
     renderer/RenderPass.cpp
     renderer/Shader.cpp
-    renderer/Texture.cpp)
+
+    scene/BasicScene.cpp
+    scene/Camera.cpp
+    scene/Entity.cpp
+    scene/EntityManager.cpp
+    scene/FreeCamera.cpp
+    scene/FreeCameraController.cpp
+    scene/Mesh.cpp
+    scene/Model.cpp
+    scene/Scene.cpp
+    scene/Texture.cpp
+    scene/Transform.cpp)
 
 find_package(glfw3 3.3 CONFIG QUIET)
 if (NOT glfw3_FOUND)

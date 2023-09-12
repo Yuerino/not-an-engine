@@ -1,10 +1,10 @@
-#include "renderer/Texture.hpp"
+#include "scene/Texture.hpp"
 
 #include <cassert>
 #include <vector>
 
 #define STB_IMAGE_IMPLEMENTATION
-#include <stb_image.h>
+#include "stb_image.h"
 
 #include "core/App.hpp"
 #include "renderer/Buffer.hpp"

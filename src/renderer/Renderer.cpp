@@ -4,6 +4,7 @@
 
 #include "core/App.hpp"
 #include "core/util.hpp"
+#include "scene/Transform.hpp"
 
 namespace nae {
 
@@ -71,6 +72,24 @@ Renderer::Renderer() {
     }
 }
 
+bool Renderer::onRender() {
+    if (!beginFrame()) {
+        return false;
+    }
+
+    startRenderPass();
+
+    renderMeshes();
+
+    endRenderPass();
+
+    if (!endFrame()) {
+        return false;
+    }
+
+    return true;
+}
+
 bool Renderer::beginFrame() {
     const auto &swapchain = App::get().getGraphicContext().getSwapchain();
 
@@ -78,12 +97,20 @@ bool Renderer::beginFrame() {
     std::tie(result, currentFrameBufferIdx_) = swapchain.get().acquireNextImage(
             std::numeric_limits<uint64_t>::max(),
             *imageAcquiredSemaphores_[currentCommandBufferIdx_]);
+
     if (result == vk::Result::eErrorOutOfDateKHR) {
         return false;
     }
+
     if (result != vk::Result::eSuccess && result != vk::Result::eSuboptimalKHR) {
         throw std::runtime_error("failed to acquire swap chain image!");
     }
+
+    return true;
+}
+
+void Renderer::startRenderPass() {
+    const auto &swapchain = App::get().getGraphicContext().getSwapchain();
 
     // Begin command buffer
     (*pVkCommandBuffers_)[currentCommandBufferIdx_].reset(vk::CommandBufferResetFlags{});
@@ -102,16 +129,6 @@ bool Renderer::beginFrame() {
     // Clear descriptor sets to bind
     descriptorSetsToBind_.clear();
 
-    return true;
-}
-
-void Renderer::beginScene(const Camera &camera) {
-    const auto &swapchain = App::get().getGraphicContext().getSwapchain();
-
-    MvpMatrices mvpMatrices{.view = camera.getViewMatrix(), .proj = camera.getProjectionMatrix()};
-    mvpBuffers_[currentCommandBufferIdx_].writeToMemory(mvpMatrices);
-    mvpBuffers_[currentCommandBufferIdx_].flushMemory();
-
     // Bind dynamic view port and scissor
     vk::Viewport viewPort{0.0f,
                           0.0f,
@@ -122,15 +139,9 @@ void Renderer::beginScene(const Camera &camera) {
     vk::Rect2D scissor{vk::Offset2D{0, 0}, swapchain.getExtent()};
     (*pVkCommandBuffers_)[currentCommandBufferIdx_].setViewport(0, viewPort);
     (*pVkCommandBuffers_)[currentCommandBufferIdx_].setScissor(0, scissor);
-
-    // Bind pipeline
-    (*pVkCommandBuffers_)[currentCommandBufferIdx_].bindPipeline(vk::PipelineBindPoint::eGraphics, *pPipeline_->get());
-
-    // Add camera descriptor set to bind
-    descriptorSetsToBind_.emplace_back(*(*pDescriptorSets_)[currentCommandBufferIdx_]);
 }
 
-void Renderer::endScene() {
+void Renderer::endRenderPass() {
     const auto &device = App::get().getGraphicContext().getDevice();
 
     (*pVkCommandBuffers_)[currentCommandBufferIdx_].endRenderPass();
@@ -161,9 +172,11 @@ bool Renderer::endFrame() {
                                    *swapchain.get(),
                                    currentFrameBufferIdx_};
     result = device.getPresentQueue().presentKHR(presentInfo);
+
     if (result == vk::Result::eErrorOutOfDateKHR || result == vk::Result::eSuboptimalKHR) {
         return false;
     }
+
     if (result != vk::Result::eSuccess) {
         throw std::runtime_error("failed to present swap chain image!");
     }
@@ -172,25 +185,60 @@ bool Renderer::endFrame() {
     return true;
 }
 
-void Renderer::draw(const Entity &entity, const Texture &texture) {
-    // Bind descriptor set
-    descriptorSetsToBind_.emplace_back(*texture.getDescriptorSets().get()[0]);
+void Renderer::renderMeshes() {
+    // Bind pipeline
+    (*pVkCommandBuffers_)[currentCommandBufferIdx_].bindPipeline(vk::PipelineBindPoint::eGraphics, *pPipeline_->get());
+
+    auto &scene = App::get().getActiveScene();
+    auto &camera = scene.getCamera();
+
+    // Update camera uniform buffer
+    MvpMatrices mvpMatrices{.view = camera.getViewMatrix(), .proj = camera.getProjectionMatrix()};
+    mvpBuffers_[currentCommandBufferIdx_].writeToMemory(mvpMatrices);
+    mvpBuffers_[currentCommandBufferIdx_].flushMemory();
+
+    // Bind camera descriptor set
+    descriptorSetsToBind_.emplace_back(*(*pDescriptorSets_)[currentCommandBufferIdx_]);
+
+    auto meshes = scene.getEntityManager().queryComponentOfType(EComponentType::Mesh);
+    std::for_each(meshes.begin(), meshes.end(), [&](auto *pComponent) -> void {
+        draw(*static_cast<Mesh *>(pComponent));
+    });
+}
+
+void Renderer::draw(const Mesh &mesh) {
+    // TODO: refactor this
+    auto *pModel = mesh.getModel();
+    auto *pTexture = mesh.getTexture();
+    if (pModel == nullptr || pTexture == nullptr) {
+        return;
+    }
+
+    // Update transform
+    Component *pComponent = mesh.getEntity()->getComponent(EComponentType::Transform);
+    auto *pTransform = static_cast<Transform *>(pComponent);
+    PushConstantModel model{.model = pTransform->getWorldMatrix()};
+
+    // Push transform
+    (*pVkCommandBuffers_)[currentCommandBufferIdx_].pushConstants<PushConstantModel>(*pPipeline_->getLayout(),
+                                                                                     vk::ShaderStageFlagBits::eVertex,
+                                                                                     0,
+                                                                                     model);
+
+    // Bind texture descriptor set
+    descriptorSetsToBind_.emplace_back(*pTexture->getDescriptorSets().get()[0]);
     (*pVkCommandBuffers_)[currentCommandBufferIdx_].bindDescriptorSets(vk::PipelineBindPoint::eGraphics,
                                                                        *pPipeline_->getLayout(),
                                                                        0,
                                                                        descriptorSetsToBind_,
                                                                        {});
 
+    // Bind buffer and draw
     // TODO: support index draw
-    PushConstantModel model{.model = entity.getTransform().getTransform()};
-    (*pVkCommandBuffers_)[currentCommandBufferIdx_].pushConstants<PushConstantModel>(*pPipeline_->getLayout(),
-                                                                                     vk::ShaderStageFlagBits::eVertex,
-                                                                                     0,
-                                                                                     model);
-    (*pVkCommandBuffers_)[currentCommandBufferIdx_].bindVertexBuffers(0,
-                                                                      {*entity.getModel().getVertexBuffer().get()},
-                                                                      {0});
-    (*pVkCommandBuffers_)[currentCommandBufferIdx_].draw(entity.getModel().getVertices().size(), 1, 0, 0);
+    (*pVkCommandBuffers_)[currentCommandBufferIdx_].bindVertexBuffers(0, {*pModel->getVertexBuffer().get()}, {0});
+    (*pVkCommandBuffers_)[currentCommandBufferIdx_].draw(pModel->getVertices().size(), 1, 0, 0);
+
+    // Remove texture descriptor set
     descriptorSetsToBind_.pop_back();
 }
 

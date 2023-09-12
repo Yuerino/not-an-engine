@@ -5,8 +5,8 @@
 
 #include "core/App.hpp"
 #include "core/GlfwApi.hpp"
-#include "core/Scene.hpp"
 #include "core/util.hpp"
+#include "scene/BasicScene.hpp"
 
 int main() {
 #ifdef __linux__
@@ -19,7 +19,7 @@ int main() {
 
     try {
         nae::App app{};
-        app.addScene<nae::BasicScene>();
+        app.setActiveScene<nae::BasicScene>();
         app.run();
     } catch (const nae::GlfwException &ex) {
         std::cerr << "GLFW error code: " << ex.getErrorCode() << ", description: " << ex.what() << '\n';

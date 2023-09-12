@@ -1,6 +1,6 @@
 #include "renderer/Pipeline.hpp"
 
-#include "core/Entity.hpp"
+#include "scene/Model.hpp"
 
 namespace nae {
 
