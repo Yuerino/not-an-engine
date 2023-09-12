@@ -26,7 +26,6 @@ set(SOURCE_FILES
     scene/FreeCameraController.cpp
     scene/Mesh.cpp
     scene/Model.cpp
-    scene/Scene.cpp
     scene/Texture.cpp
     scene/Transform.cpp)
 

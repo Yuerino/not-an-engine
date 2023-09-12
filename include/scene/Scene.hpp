@@ -8,7 +8,7 @@ namespace nae {
 
 class Scene {
 public:
-    explicit Scene(std::unique_ptr<Camera> pCamera);
+    explicit Scene(std::unique_ptr<Camera> pCamera) : pCamera_{std::move(pCamera)} {}
     virtual ~Scene() = default;
 
     virtual void onAttach() = 0;
