@@ -14,3 +14,6 @@ find_package(Vulkan REQUIRED)
 
 add_subdirectory(src)
 add_subdirectory(shader)
+
+file(COPY model DESTINATION ${CMAKE_BINARY_DIR})
+file(COPY shader DESTINATION ${CMAKE_BINARY_DIR})
