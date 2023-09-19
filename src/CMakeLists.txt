@@ -29,17 +29,6 @@ set(SOURCE_FILES
     scene/Texture.cpp
     scene/Transform.cpp)
 
-find_package(glfw3 3.3 CONFIG QUIET)
-if (NOT glfw3_FOUND)
-    set(GLFW_BUILD_DOCS OFF CACHE BOOL "GLFW Lib only")
-    set(GLFW_BUILD_TESTS OFF CACHE BOOL "GLFW Lib only")
-    set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "GLFW Lib only")
-    set(GLFW_BUILD_TESTS OFF CACHE BOOL "GLFW Lib only")
-    set(GLFW_INSTALL OFF CACHE BOOL "GLFW Lib only")
-    add_subdirectory(${PROJECT_SOURCE_DIR}/dependency/glfw glfw)
-    set_target_properties(glfw PROPERTIES FOLDER "dependency")
-endif ()
-
 add_executable(not-an-engine ${SOURCE_FILES})
 
 add_dependencies(not-an-engine nae-shaders)
@@ -70,5 +59,6 @@ target_include_directories(not-an-engine
 target_link_libraries(not-an-engine
     PRIVATE
     glfw
+    glm
     PUBLIC
     Vulkan::Vulkan)

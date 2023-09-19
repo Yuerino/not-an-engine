@@ -11,6 +11,7 @@
 #include "renderer/Buffer.hpp"
 
 namespace nae {
+
 struct Model {
 public:
     struct Vertex {
@@ -42,4 +43,5 @@ private:
     std::vector<uint32_t> indices_{};
     std::unique_ptr<Buffer> pVertexBuffer_{};
 };
+
 } // namespace nae

@@ -117,9 +117,8 @@ const Swapchain &GraphicContext::getSwapchain() const noexcept {
 }
 
 #if defined(NDEBUG)
-void Instance::gatherLayers(const std::vector<std::string> &layers) {
+void GraphicContext::gatherLayers(const std::vector<std::string> &layers) {
 #else
-
 void GraphicContext::gatherLayers(const std::vector<std::string> &layers,
                                   const std::vector<vk::LayerProperties> &layerProperties) {
 #endif
@@ -145,9 +144,8 @@ void GraphicContext::gatherLayers(const std::vector<std::string> &layers,
 #endif
 }
 #if defined(NDEBUG)
-void Instance::gatherExtensions(const std::vector<std::string> &extensions) {
+void GraphicContext::gatherExtensions(const std::vector<std::string> &extensions) {
 #else
-
 void GraphicContext::gatherExtensions(const std::vector<std::string> &extensions,
                                       const std::vector<vk::ExtensionProperties> &extensionProperties) {
 #endif

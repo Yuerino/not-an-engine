@@ -12,6 +12,23 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 find_package(Vulkan REQUIRED)
 
+find_package(glfw3 3.3 CONFIG QUIET)
+if (NOT glfw3_FOUND)
+    set(GLFW_BUILD_DOCS OFF CACHE BOOL "GLFW Lib only")
+    set(GLFW_BUILD_TESTS OFF CACHE BOOL "GLFW Lib only")
+    set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "GLFW Lib only")
+    set(GLFW_BUILD_TESTS OFF CACHE BOOL "GLFW Lib only")
+    set(GLFW_INSTALL OFF CACHE BOOL "GLFW Lib only")
+    add_subdirectory(${PROJECT_SOURCE_DIR}/dependency/glfw glfw)
+    set_target_properties(glfw PROPERTIES FOLDER "dependency")
+endif ()
+
+find_package(glm CONFIG QUIET)
+if (NOT glm_FOUND)
+    add_subdirectory(${PROJECT_SOURCE_DIR}/dependency/glm glm)
+    set_target_properties(glm PROPERTIES FOLDER "dependency")
+endif ()
+
 add_subdirectory(src)
 add_subdirectory(shader)
 

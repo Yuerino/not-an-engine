@@ -118,7 +118,7 @@ void Renderer::startRenderPass() {
 
     // Render pass begin
     std::array<vk::ClearValue, 2> clearValues{};
-    clearValues[0] = vk::ClearColorValue{0.0f, 0.0f, 0.0f, 1.0f};
+    clearValues[0] = vk::ClearColorValue{std::array<float, 4>{0.0f, 0.0f, 0.0f, 1.0f}};
     clearValues[1] = vk::ClearDepthStencilValue{1.0f, 0};
     vk::RenderPassBeginInfo renderPassBeginInfo{*pPipeline_->getRenderPass().get(),
                                                 *swapchain.getFrameBuffers()[currentFrameBufferIdx_],

@@ -18,31 +18,31 @@ void BasicScene::onAttach() {
                                                glm::vec3{0.0f, -glm::half_pi<float>(), 0.0f});
     pCameraController->addComponent<FreeCameraController>();
 
-    //! Plane texture
-    auto pPlaneTexture = std::make_unique<Texture>(vk::Extent2D{1024, 1024});
-    pPlaneTexture->setTexels("../model/PavingStones135_1K.png");
+    //! Paving Stones texture
+    auto pPavingStonesTexture = std::make_unique<Texture>(vk::Extent2D{1024, 1024});
+    pPavingStonesTexture->setTexels("../model/PavingStones135_1K.png");
+
+    //! Concrete texture
+    auto pConcreteTexture = std::make_unique<Texture>(vk::Extent2D{1024, 1024});
+    pConcreteTexture->setTexels("../model/Concrete042A_1K.png");
+
+    //! Wood texture
+    auto pWoodTexture = std::make_unique<Texture>(vk::Extent2D{1024, 1024});
+    pWoodTexture->setTexels("../model/Wood054_1K.png");
 
     //! Plane
     auto *pPlaneEntity = getEntityManager().addEntity(std::make_unique<Entity>("plane"));
-    pPlaneEntity->addComponent<Mesh>(std::make_unique<Model>("../model/floor.obj"), std::move(pPlaneTexture));
+    pPlaneEntity->addComponent<Mesh>(std::make_unique<Model>("../model/floor.obj"), std::move(pPavingStonesTexture));
     pPlaneEntity->addComponent<Transform>(glm::vec3{0.0f}, glm::vec3{0.0f}, glm::vec3{10.0f, 10.0f, 10.0f});
-
-    //! 42 obj texture
-    auto p42Texture = std::make_unique<Texture>(vk::Extent2D{1024, 1024});
-    p42Texture->setTexels("../model/Concrete042A_1K.png");
 
     //! 42 obj
     auto *p42Entity = getEntityManager().addEntity(std::make_unique<Entity>("42"));
-    p42Entity->addComponent<Mesh>(std::make_unique<Model>("../model/forty_two.obj"), std::move(p42Texture));
+    p42Entity->addComponent<Mesh>(std::make_unique<Model>("../model/forty_two.obj"), std::move(pConcreteTexture));
     p42Entity->addComponent<Transform>(glm::vec3{5.0f, 0.0f, 0.0f});
-
-    //! Vase obj texture
-    auto pVaseTexture = std::make_unique<Texture>(vk::Extent2D{1024, 1024});
-    pVaseTexture->setTexels("../model/Wood054_1K.png");
 
     //! Vase obj
     auto *pVaseEntity = getEntityManager().addEntity(std::make_unique<Entity>("vase"));
-    pVaseEntity->addComponent<Mesh>(std::make_unique<Model>("../model/vase.obj"), std::move(pVaseTexture));
+    pVaseEntity->addComponent<Mesh>(std::make_unique<Model>("../model/vase.obj"), std::move(pWoodTexture));
     pVaseEntity->addComponent<Transform>(glm::vec3{0.0f}, glm::vec3{0.0f}, glm::vec3{5.0f, 5.0f, 5.0f});
 }
 
