@@ -39,18 +39,22 @@ DescriptorSets::DescriptorSets(const Device &device,
 
 void DescriptorSets::update(const std::vector<Buffer> &buffers, uint32_t bindingOffset) {
     assert(buffers.size() == vkDescriptorSets_.size());
+
     std::vector<vk::WriteDescriptorSet> writeDescriptorSets;
     writeDescriptorSets.reserve(buffers.size());
 
+    std::vector<vk::DescriptorBufferInfo> bufferInfos;
+    bufferInfos.reserve(buffers.size());
+
     for (size_t i = 0; i < buffers.size(); ++i) {
-        vk::DescriptorBufferInfo bufferInfo{buffers[i].getBufferInfo()};
+        bufferInfos.emplace_back(buffers[i].getBufferInfo());
         writeDescriptorSets.emplace_back(*vkDescriptorSets_[i],
                                          bindingOffset,
                                          0,
                                          1,
                                          vk::DescriptorType::eUniformBuffer,
                                          nullptr,
-                                         &bufferInfo);
+                                         &bufferInfos.back());
     }
 
     device_.get().get().updateDescriptorSets(writeDescriptorSets, nullptr);
