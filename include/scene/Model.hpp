@@ -6,6 +6,10 @@
 
 namespace nae {
 
+struct ObjectPushConstant {
+    alignas(16) glm::mat4 transform;
+};
+
 class Model final : public Component {
 public:
     explicit Model(std::unique_ptr<Mesh> pModel = nullptr, std::unique_ptr<Material> pMaterial = nullptr);

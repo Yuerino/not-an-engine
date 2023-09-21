@@ -25,6 +25,7 @@ public:
         [[nodiscard]] static std::vector<vk::VertexInputAttributeDescription> getAttributeDescriptions();
     };
 
+public:
     explicit Mesh(const std::string &filePath);
 
     void draw(const vk::raii::CommandBuffer &vkCommandBuffer) const;

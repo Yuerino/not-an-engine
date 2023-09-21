@@ -2,6 +2,7 @@
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#include <vulkan/vulkan_raii.hpp>
 
 #include "core/Time.hpp"
 
@@ -13,6 +14,8 @@ public:
     virtual ~Camera() = default;
 
     virtual void onUpdate(Time timestep) = 0;
+
+    virtual void bind(const vk::raii::CommandBuffer &commandBuffer) const = 0;
 
     void calculateViewMatrix(glm::vec3 position, glm::vec3 rotation);
 

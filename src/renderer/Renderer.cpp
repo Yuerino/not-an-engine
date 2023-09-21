@@ -3,8 +3,7 @@
 #include <limits>
 
 #include "core/App.hpp"
-#include "core/util.hpp"
-#include "scene/Transform.hpp"
+#include "scene/Model.hpp"
 
 namespace nae {
 
@@ -27,19 +26,6 @@ Renderer::Renderer() {
     pVkCommandBuffers_ = std::make_unique<vk::raii::CommandBuffers>(
             device.get(),
             vk::CommandBufferAllocateInfo{**pVkCommandPool_, vk::CommandBufferLevel::ePrimary, MAX_FRAMES_IN_FLIGHT});
-
-    mvpBuffers_.reserve(MAX_FRAMES_IN_FLIGHT);
-    for (uint32_t i = 0; i < MAX_FRAMES_IN_FLIGHT; ++i) {
-        mvpBuffers_.emplace_back(device, sizeof(MvpMatrices), vk::BufferUsageFlagBits::eUniformBuffer);
-        mvpBuffers_[i].mapMemory();
-    }
-
-    DescriptorSetLayout uboDescriptorSetLayout{
-            device,
-            {{0, vk::DescriptorType::eUniformBuffer, 1, vk::ShaderStageFlagBits::eVertex}}};
-    std::vector<vk::DescriptorSetLayout> vkDescriptorSetLayouts(MAX_FRAMES_IN_FLIGHT, *uboDescriptorSetLayout.get());
-    pDescriptorSets_ = std::make_unique<DescriptorSets>(device, *pDescriptorPool_, vkDescriptorSetLayouts);
-    pDescriptorSets_->update(mvpBuffers_);
 
     // TODO: check max anisotropy filter sampler
     pVkSampler_ = std::make_unique<vk::raii::Sampler>(device.get(),
@@ -125,7 +111,7 @@ void Renderer::startRenderPass() {
     (*pVkCommandBuffers_)[currentCommandBufferIdx_].beginRenderPass(renderPassBeginInfo, vk::SubpassContents::eInline);
 
     // Clear descriptor sets to bind
-    descriptorSetsToBind_.clear();
+    //    descriptorSetsToBind_.clear();
 
     // Bind dynamic view port and scissor
     vk::Viewport viewPort{0.0f,
@@ -186,18 +172,9 @@ bool Renderer::endFrame() {
 void Renderer::renderModels() {
     auto &scene = App::get().getActiveScene();
 
-    {
-        // TODO: move to camera bind
-        // Update camera uniform buffer
-        auto &camera = scene.getCamera();
-
-        MvpMatrices mvpMatrices{.view = camera.getViewMatrix(), .proj = camera.getProjectionMatrix()};
-        mvpBuffers_[currentCommandBufferIdx_].writeToMemory(mvpMatrices);
-        mvpBuffers_[currentCommandBufferIdx_].flushMemory();
-
-        // Bind camera descriptor set
-        descriptorSetsToBind_.emplace_back(*(*pDescriptorSets_)[currentCommandBufferIdx_]);
-    }
+    // Bind camera
+    auto &camera = scene.getCamera();
+    camera.bind((*pVkCommandBuffers_)[currentCommandBufferIdx_]);
 
     auto models = scene.getEntityManager().queryComponentOfType(EComponentType::Model);
     std::for_each(models.begin(), models.end(), [&](auto *pComponent) -> void {

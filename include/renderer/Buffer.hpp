@@ -109,13 +109,4 @@ private:
     vk::MemoryPropertyFlags propertyFlags_;
 };
 
-struct MvpMatrices {
-    alignas(16) glm::mat4 view;
-    alignas(16) glm::mat4 proj;
-};
-
-struct ObjectPushConstant {
-    alignas(16) glm::mat4 transform;
-};
-
 } // namespace nae

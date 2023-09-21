@@ -3,6 +3,7 @@
 #include "core/App.hpp"
 #include "renderer/Descriptor.hpp"
 #include "scene/Mesh.hpp"
+#include "scene/Model.hpp"
 
 namespace nae {
 

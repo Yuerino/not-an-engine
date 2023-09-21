@@ -3,22 +3,14 @@
 #include <vulkan/vulkan_raii.hpp>
 
 #include "core/Time.hpp"
-#include "renderer/Buffer.hpp"
 #include "renderer/Descriptor.hpp"
 #include "renderer/Pipeline.hpp"
-#include "scene/Model.hpp"
 
 namespace nae {
 
 class Renderer {
 public:
     Renderer();
-    ~Renderer() = default;
-
-    Renderer(const Renderer &) = delete;
-    Renderer &operator=(const Renderer &) = delete;
-    Renderer(Renderer &&) = default;
-    Renderer &operator=(Renderer &&) = default;
 
     bool onRender();
 
@@ -28,6 +20,8 @@ public:
     [[nodiscard]] const vk::raii::Sampler &getVkSampler() const noexcept { return *pVkSampler_; };
     // TODO: managing class for descriptor sets
     [[nodiscard]] std::vector<vk::DescriptorSet> &getDescriptorSetsToBind() noexcept { return descriptorSetsToBind_; };
+    [[nodiscard]] static constexpr uint32_t getMaxFramesInFlight() noexcept { return MAX_FRAMES_IN_FLIGHT; };
+    [[nodiscard]] uint32_t getCurrentCommandBufferIdx() const noexcept { return currentCommandBufferIdx_; };
 
 private:
     bool beginFrame();
@@ -45,15 +39,12 @@ private:
     std::unique_ptr<DescriptorPool> pDescriptorPool_;
     std::unique_ptr<vk::raii::CommandPool> pVkCommandPool_;
     std::unique_ptr<vk::raii::CommandBuffers> pVkCommandBuffers_;
-    std::vector<Buffer> mvpBuffers_;
-    std::unique_ptr<DescriptorSets> pDescriptorSets_;
     std::unique_ptr<vk::raii::Sampler> pVkSampler_;
+    std::vector<vk::DescriptorSet> descriptorSetsToBind_;
 
     std::vector<vk::raii::Semaphore> imageAcquiredSemaphores_;
     std::vector<vk::raii::Semaphore> renderFinishedSemaphores_;
     std::vector<vk::raii::Fence> drawFences_;
-
-    std::vector<vk::DescriptorSet> descriptorSetsToBind_;
 
     uint32_t currentFrameBufferIdx_{0};
     uint32_t currentCommandBufferIdx_{0};
