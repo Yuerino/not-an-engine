@@ -19,5 +19,15 @@ To compile this project you will need:
 Currently, the project is only set up for Clion with MinGW build tools. MVSC support is not planned.
 
 - Install latest Vulkan SDK [here](https://vulkan.lunarg.com/sdk/home#windows)
-- Git clone this repository with submodules for dependencies.
-- Build project with CMAKE.
+- Git clone this repository with submodules for dependencies
+- Build project with CMAKE
+
+### Linux
+
+- Install latest Vulkan SDK [here](https://vulkan.lunarg.com/sdk/home#linux)
+- Make sure you have all dependencies installed
+```shell
+sudo apt update
+sudo apt install libglfw3-dev libglm-dev libxxf86vm-dev libxi-dev
+```
+- Build project with CMAKE
