@@ -1,4 +1,4 @@
-#include "scene/FreeCamera.hpp"
+#include "sample/FreeCamera.hpp"
 
 #include "core/App.hpp"
 #include "scene/Transform.hpp"

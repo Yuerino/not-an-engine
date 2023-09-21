@@ -13,16 +13,12 @@ namespace nae {
 
 class Texture {
 public:
-    explicit Texture(const vk::Extent2D &extent_ = {256, 256},
+    explicit Texture(const vk::Extent2D &extent_ = {1024, 1024},
                      vk::ImageUsageFlags usageFlags = {},
                      vk::FormatFeatureFlags formatFeatureFlags = {},
                      bool forceStaging = false);
-    ~Texture() = default;
 
-    Texture(const Texture &) = delete;
-    Texture &operator=(const Texture &) = delete;
-    Texture(Texture &&) = default;
-    Texture &operator=(Texture &&) = default;
+    void bind(const vk::raii::CommandBuffer &vkCommandBuffer) const;
 
     void setTexels(const std::string &texelPath);
 

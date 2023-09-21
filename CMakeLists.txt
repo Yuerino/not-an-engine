@@ -30,7 +30,4 @@ if (NOT glm_FOUND)
 endif ()
 
 add_subdirectory(src)
-add_subdirectory(shader)
-
-file(COPY model DESTINATION ${CMAKE_BINARY_DIR})
-file(COPY shader DESTINATION ${CMAKE_BINARY_DIR})
+add_subdirectory(resource/shader)

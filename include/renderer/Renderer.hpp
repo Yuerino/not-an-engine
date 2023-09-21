@@ -6,7 +6,7 @@
 #include "renderer/Buffer.hpp"
 #include "renderer/Descriptor.hpp"
 #include "renderer/Pipeline.hpp"
-#include "scene/Mesh.hpp"
+#include "scene/Model.hpp"
 
 namespace nae {
 
@@ -22,10 +22,12 @@ public:
 
     bool onRender();
 
-    [[nodiscard]] Pipeline &getPipeline() const noexcept { return *pPipeline_; };
+    [[nodiscard]] const RenderPass &getRenderPass() const noexcept { return *pRenderPass_; };
     [[nodiscard]] const DescriptorPool &getDescriptorPool() const noexcept { return *pDescriptorPool_; };
     [[nodiscard]] const vk::raii::CommandPool &getVkCommandPool() const noexcept { return *pVkCommandPool_; };
     [[nodiscard]] const vk::raii::Sampler &getVkSampler() const noexcept { return *pVkSampler_; };
+    // TODO: managing class for descriptor sets
+    [[nodiscard]] std::vector<vk::DescriptorSet> &getDescriptorSetsToBind() noexcept { return descriptorSetsToBind_; };
 
 private:
     bool beginFrame();
@@ -34,15 +36,13 @@ private:
     void startRenderPass();
     void endRenderPass();
 
-    void renderMeshes();
-
-    void draw(const Mesh &mesh);
+    void renderModels();
 
 private:
     static constexpr uint32_t MAX_FRAMES_IN_FLIGHT = 2;
 
+    std::unique_ptr<RenderPass> pRenderPass_;
     std::unique_ptr<DescriptorPool> pDescriptorPool_;
-    std::unique_ptr<Pipeline> pPipeline_;
     std::unique_ptr<vk::raii::CommandPool> pVkCommandPool_;
     std::unique_ptr<vk::raii::CommandBuffers> pVkCommandBuffers_;
     std::vector<Buffer> mvpBuffers_;

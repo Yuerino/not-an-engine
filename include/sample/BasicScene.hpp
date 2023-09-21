@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Scene.hpp"
+#include "scene/Scene.hpp"
 
 namespace nae {
 

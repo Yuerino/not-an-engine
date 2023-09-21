@@ -1,5 +1,4 @@
 set(SOURCE_FILES
-    main.cpp
     core/App.cpp
     core/Device.cpp
     core/GlfwApi.cpp
@@ -18,18 +17,24 @@ set(SOURCE_FILES
     renderer/RenderPass.cpp
     renderer/Shader.cpp
 
-    scene/BasicScene.cpp
     scene/Camera.cpp
     scene/Entity.cpp
     scene/EntityManager.cpp
-    scene/FreeCamera.cpp
-    scene/FreeCameraController.cpp
     scene/Mesh.cpp
     scene/Model.cpp
+    scene/SolidColorMaterial.cpp
     scene/Texture.cpp
-    scene/Transform.cpp)
+    scene/TextureMaterial.cpp
+    scene/Transform.cpp
+
+    sample/main.cpp
+    sample/BasicScene.cpp
+    sample/FreeCamera.cpp
+    sample/FreeCameraController.cpp)
 
 add_executable(not-an-engine ${SOURCE_FILES})
+
+set_target_properties(not-an-engine PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/..")
 
 add_dependencies(not-an-engine nae-shaders)
 

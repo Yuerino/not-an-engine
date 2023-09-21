@@ -20,7 +20,7 @@ App::App(AppConfig appConfig) : appConfig_{std::move(appConfig)} {
 
     pRenderer_ = std::make_unique<Renderer>();
 
-    pGraphicContext_->createDepthAndFrameBuffers(pRenderer_->getPipeline().getRenderPass());
+    pGraphicContext_->createDepthAndFrameBuffers(pRenderer_->getRenderPass());
 }
 
 App::~App() {
@@ -52,7 +52,7 @@ void App::close() noexcept {
 }
 
 void App::resize() noexcept {
-    pGraphicContext_->recreateSwapchain(*pWindow_, pRenderer_->getPipeline().getRenderPass());
+    pGraphicContext_->recreateSwapchain(*pWindow_, pRenderer_->getRenderPass());
     pWindow_->resetFramebufferResized();
 }
 

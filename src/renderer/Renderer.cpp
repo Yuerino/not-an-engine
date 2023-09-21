@@ -12,15 +12,13 @@ Renderer::Renderer() {
     const auto &graphicContext = App::get().getGraphicContext();
     const auto &device = graphicContext.getDevice();
 
+    pRenderPass_ = std::make_unique<RenderPass>(graphicContext.getSwapchain().getFormat().format,
+                                                vk::Format::eD32Sfloat);
+
     pDescriptorPool_ = std::make_unique<DescriptorPool>(
             device,
             std::initializer_list<vk::DescriptorPoolSize>{{vk::DescriptorType::eUniformBuffer, MAX_FRAMES_IN_FLIGHT},
                                                           {vk::DescriptorType::eCombinedImageSampler, 10}});
-
-    pPipeline_ = std::make_unique<Pipeline>(device,
-                                            graphicContext.getSwapchain(),
-                                            util::vertShaderPath,
-                                            util::fragShaderPath);
 
     pVkCommandPool_ = std::make_unique<vk::raii::CommandPool>(
             device.get(),
@@ -79,7 +77,7 @@ bool Renderer::onRender() {
 
     startRenderPass();
 
-    renderMeshes();
+    renderModels();
 
     endRenderPass();
 
@@ -120,7 +118,7 @@ void Renderer::startRenderPass() {
     std::array<vk::ClearValue, 2> clearValues{};
     clearValues[0] = vk::ClearColorValue{std::array<float, 4>{0.0f, 0.0f, 0.0f, 1.0f}};
     clearValues[1] = vk::ClearDepthStencilValue{1.0f, 0};
-    vk::RenderPassBeginInfo renderPassBeginInfo{*pPipeline_->getRenderPass().get(),
+    vk::RenderPassBeginInfo renderPassBeginInfo{*pRenderPass_->get(),
                                                 *swapchain.getFrameBuffers()[currentFrameBufferIdx_],
                                                 vk::Rect2D{vk::Offset2D{0, 0}, swapchain.getExtent()},
                                                 clearValues};
@@ -185,61 +183,27 @@ bool Renderer::endFrame() {
     return true;
 }
 
-void Renderer::renderMeshes() {
-    // Bind pipeline
-    (*pVkCommandBuffers_)[currentCommandBufferIdx_].bindPipeline(vk::PipelineBindPoint::eGraphics, *pPipeline_->get());
-
+void Renderer::renderModels() {
     auto &scene = App::get().getActiveScene();
-    auto &camera = scene.getCamera();
 
-    // Update camera uniform buffer
-    MvpMatrices mvpMatrices{.view = camera.getViewMatrix(), .proj = camera.getProjectionMatrix()};
-    mvpBuffers_[currentCommandBufferIdx_].writeToMemory(mvpMatrices);
-    mvpBuffers_[currentCommandBufferIdx_].flushMemory();
+    {
+        // TODO: move to camera bind
+        // Update camera uniform buffer
+        auto &camera = scene.getCamera();
 
-    // Bind camera descriptor set
-    descriptorSetsToBind_.emplace_back(*(*pDescriptorSets_)[currentCommandBufferIdx_]);
+        MvpMatrices mvpMatrices{.view = camera.getViewMatrix(), .proj = camera.getProjectionMatrix()};
+        mvpBuffers_[currentCommandBufferIdx_].writeToMemory(mvpMatrices);
+        mvpBuffers_[currentCommandBufferIdx_].flushMemory();
 
-    auto meshes = scene.getEntityManager().queryComponentOfType(EComponentType::Mesh);
-    std::for_each(meshes.begin(), meshes.end(), [&](auto *pComponent) -> void {
-        draw(*static_cast<Mesh *>(pComponent));
-    });
-}
-
-void Renderer::draw(const Mesh &mesh) {
-    // TODO: refactor this
-    auto *pModel = mesh.getModel();
-    auto *pTexture = mesh.getTexture();
-    if (pModel == nullptr || pTexture == nullptr) {
-        return;
+        // Bind camera descriptor set
+        descriptorSetsToBind_.emplace_back(*(*pDescriptorSets_)[currentCommandBufferIdx_]);
     }
 
-    // Update transform
-    Component *pComponent = mesh.getEntity()->getComponent(EComponentType::Transform);
-    auto *pTransform = static_cast<Transform *>(pComponent);
-    PushConstantModel model{.model = pTransform->getWorldMatrix()};
-
-    // Push transform
-    (*pVkCommandBuffers_)[currentCommandBufferIdx_].pushConstants<PushConstantModel>(*pPipeline_->getLayout(),
-                                                                                     vk::ShaderStageFlagBits::eVertex,
-                                                                                     0,
-                                                                                     model);
-
-    // Bind texture descriptor set
-    descriptorSetsToBind_.emplace_back(*pTexture->getDescriptorSets().get()[0]);
-    (*pVkCommandBuffers_)[currentCommandBufferIdx_].bindDescriptorSets(vk::PipelineBindPoint::eGraphics,
-                                                                       *pPipeline_->getLayout(),
-                                                                       0,
-                                                                       descriptorSetsToBind_,
-                                                                       {});
-
-    // Bind buffer and draw
-    // TODO: support index draw
-    (*pVkCommandBuffers_)[currentCommandBufferIdx_].bindVertexBuffers(0, {*pModel->getVertexBuffer().get()}, {0});
-    (*pVkCommandBuffers_)[currentCommandBufferIdx_].draw(pModel->getVertices().size(), 1, 0, 0);
-
-    // Remove texture descriptor set
-    descriptorSetsToBind_.pop_back();
+    auto models = scene.getEntityManager().queryComponentOfType(EComponentType::Model);
+    std::for_each(models.begin(), models.end(), [&](auto *pComponent) -> void {
+        auto pModel = static_cast<Model *>(pComponent);
+        pModel->draw((*pVkCommandBuffers_)[currentCommandBufferIdx_]);
+    });
 }
 
 } // namespace nae

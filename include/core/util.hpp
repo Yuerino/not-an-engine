@@ -2,13 +2,7 @@
 
 #include <fstream>
 
-#include "renderer/Buffer.hpp"
-
 namespace nae::util {
-
-inline std::string fragShaderPath;
-inline std::string vertShaderPath;
-
 
 [[nodiscard]] inline std::vector<char> readFile(const std::string &path) {
     std::ifstream file{path, std::ios::ate | std::ios::binary};

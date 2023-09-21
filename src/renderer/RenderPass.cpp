@@ -2,10 +2,11 @@
 
 #include <vector>
 
+#include "core/App.hpp"
+
 namespace nae {
 
-RenderPass::RenderPass(const Device &device,
-                       vk::Format colorFormat,
+RenderPass::RenderPass(vk::Format colorFormat,
                        vk::Format depthFormat,
                        vk::AttachmentLoadOp loadOp,
                        vk::ImageLayout colorFinalLayout) {
@@ -47,6 +48,8 @@ RenderPass::RenderPass(const Device &device,
     vk::RenderPassCreateInfo renderPassCreateInfo{vk::RenderPassCreateFlags{},
                                                   attachmentDescriptions,
                                                   subPassDescription};
+
+    const auto &device = App::get().getGraphicContext().getDevice();
     vkRenderPass_ = vk::raii::RenderPass{device.get(), renderPassCreateInfo};
 }
 

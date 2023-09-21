@@ -114,8 +114,8 @@ struct MvpMatrices {
     alignas(16) glm::mat4 proj;
 };
 
-struct PushConstantModel {
-    alignas(16) glm::mat4 model;
+struct ObjectPushConstant {
+    alignas(16) glm::mat4 transform;
 };
 
 } // namespace nae

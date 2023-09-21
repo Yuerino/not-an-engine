@@ -1,8 +1,8 @@
 find_program(GLSL_VALIDATOR glslangValidator REQUIRED)
 
 set(SHADERS
-    shader.frag
-    shader.vert)
+    TextureMaterial.frag
+    TextureMaterial.vert)
 
 foreach (SHADER ${SHADERS})
     get_filename_component(FILE_NAME ${SHADER} NAME)

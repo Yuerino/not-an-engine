@@ -1,47 +1,28 @@
 #pragma once
 
-#include <array>
-#include <memory>
-#include <string>
-#include <vector>
-
-#include <glm/glm.hpp>
-#include <vulkan/vulkan.hpp>
-
-#include "renderer/Buffer.hpp"
+#include "Component.hpp"
+#include "Material.hpp"
+#include "Mesh.hpp"
 
 namespace nae {
 
-struct Model {
+class Model final : public Component {
 public:
-    struct Vertex {
-        glm::vec3 position;
-        glm::vec3 color;
-        glm::vec3 normal;
-        glm::vec2 texCoord;
+    explicit Model(std::unique_ptr<Mesh> pModel = nullptr, std::unique_ptr<Material> pMaterial = nullptr);
 
-        [[nodiscard]] static std::array<vk::VertexInputBindingDescription, 1> getBindingDescriptions();
-        [[nodiscard]] static std::vector<vk::VertexInputAttributeDescription> getAttributeDescriptions();
-    };
+    [[nodiscard]] EComponentType getType() const noexcept final { return EComponentType::Model; }
 
-    explicit Model(const std::string &filePath);
-    ~Model() = default;
+    void draw(const vk::raii::CommandBuffer &vkCommandBuffer) const;
 
-    Model(const Model &) = delete;
-    Model &operator=(const Model &) = delete;
-    Model(Model &&) = default;
-    Model &operator=(Model &&) = default;
+    void setMesh(std::unique_ptr<Mesh> pMesh) { pMesh_ = std::move(pMesh); }
+    void setMaterial(std::unique_ptr<Material> pMaterial) { pMaterial_ = std::move(pMaterial); }
 
-    [[nodiscard]] const std::string &getFilePath() const noexcept { return filePath_; }
-    [[nodiscard]] const std::vector<Vertex> &getVertices() const noexcept { return vertices_; }
-    [[nodiscard]] const std::vector<uint32_t> &getIndices() const noexcept { return indices_; }
-    [[nodiscard]] Buffer &getVertexBuffer() const noexcept { return *pVertexBuffer_; }
+    [[nodiscard]] Mesh *getMesh() const noexcept { return pMesh_.get(); }
+    [[nodiscard]] Material *getMaterial() const noexcept { return pMaterial_.get(); }
 
 private:
-    std::string filePath_;
-    std::vector<Vertex> vertices_{};
-    std::vector<uint32_t> indices_{};
-    std::unique_ptr<Buffer> pVertexBuffer_{};
+    std::unique_ptr<Mesh> pMesh_{nullptr};
+    std::unique_ptr<Material> pMaterial_{nullptr};
 };
 
 } // namespace nae

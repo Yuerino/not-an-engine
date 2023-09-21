@@ -1,70 +1,49 @@
 #include "scene/Model.hpp"
 
-#include <unordered_map>
-
-#define TINYOBJLOADER_IMPLEMENTATION
-#include <tiny_obj_loader.h>
+#include <vulkan/vulkan_raii.hpp>
 
 #include "core/App.hpp"
+#include "scene/SolidColorMaterial.hpp"
+#include "scene/Transform.hpp"
 
 namespace nae {
-std::array<vk::VertexInputBindingDescription, 1> Model::Vertex::getBindingDescriptions() {
-    return {vk::VertexInputBindingDescription{0, sizeof(Vertex), vk::VertexInputRate::eVertex}};
+
+Model::Model(std::unique_ptr<Mesh> pMesh, std::unique_ptr<Material> pMaterial)
+    : pMesh_{std::move(pMesh)}, pMaterial_{std::move(pMaterial)} {
+    if (pMesh != nullptr && pMaterial == nullptr) {
+        pMaterial_ = std::make_unique<SolidColorMaterial>("white", glm::vec3{1.0f, 1.0f, 1.0f});
+    }
 }
 
-std::vector<vk::VertexInputAttributeDescription> Model::Vertex::getAttributeDescriptions() {
-    return {vk::VertexInputAttributeDescription{0, 0, vk::Format::eR32G32B32Sfloat, offsetof(Vertex, position)},
-            vk::VertexInputAttributeDescription{1, 0, vk::Format::eR32G32B32Sfloat, offsetof(Vertex, color)},
-            vk::VertexInputAttributeDescription{2, 0, vk::Format::eR32G32B32Sfloat, offsetof(Vertex, normal)},
-            vk::VertexInputAttributeDescription{3, 0, vk::Format::eR32G32Sfloat, offsetof(Vertex, texCoord)}};
-}
-
-Model::Model(const std::string &filePath) : filePath_{filePath} {
-    tinyobj::attrib_t attrib;
-    std::vector<tinyobj::shape_t> shapes;
-    std::vector<tinyobj::material_t> materials;
-
-    std::string error;
-    if (!tinyobj::LoadObj(&attrib, &shapes, &materials, &error, filePath.c_str())) {
-        throw std::runtime_error(error);
+void Model::draw(const vk::raii::CommandBuffer &vkCommandBuffer) const {
+    if (pMesh_ == nullptr || pMaterial_ == nullptr) {
+        return;
     }
 
-    for (const auto &shape: shapes) {
-        for (const auto &index: shape.mesh.indices) {
-            Vertex vertex{};
+    // Update object resource
+    Component *pComponent = getEntity()->getComponent(EComponentType::Transform);
+    auto *pTransform = static_cast<Transform *>(pComponent);
+    ObjectPushConstant objectPushConstant{.transform = pTransform->getWorldMatrix()};
 
-            if (index.vertex_index >= 0) {
-                vertex.position = {attrib.vertices[3 * index.vertex_index + 0],
-                                   attrib.vertices[3 * index.vertex_index + 1],
-                                   attrib.vertices[3 * index.vertex_index + 2]};
+    // Bind object resource
+    vkCommandBuffer.pushConstants<ObjectPushConstant>(*pMaterial_->getPipeline()->getLayout(),
+                                                      vk::ShaderStageFlagBits::eVertex,
+                                                      0,
+                                                      objectPushConstant);
 
-                vertex.color = {1.0f, 1.0f, 1.0f};
-            }
+    // Bind material
+    pMaterial_->bind(vkCommandBuffer);
 
-            if (index.normal_index >= 0) {
-                vertex.normal = {attrib.normals[3 * index.normal_index + 0],
-                                 attrib.normals[3 * index.normal_index + 1],
-                                 attrib.normals[3 * index.normal_index + 2]};
-            }
+    // Bind descriptor sets
+    auto descriptorSetsToBind = App::get().getRenderer().getDescriptorSetsToBind();
+    vkCommandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics,
+                                       *pMaterial_->getPipeline()->getLayout(),
+                                       0,
+                                       descriptorSetsToBind,
+                                       {});
 
-            if (index.texcoord_index >= 0) {
-                vertex.texCoord = {
-                        attrib.texcoords[2 * index.texcoord_index + 0],
-                        attrib.texcoords[2 * index.texcoord_index + 1],
-                };
-            }
-            vertices_.push_back(vertex);
-            // ignore index for now
-        }
-    }
-
-    const auto &device = App::get().getGraphicContext().getDevice();
-    const auto &vkCommandPool_ = App::get().getRenderer().getVkCommandPool();
-    pVertexBuffer_ = std::make_unique<Buffer>(
-            device,
-            sizeof(Vertex) * vertices_.size(),
-            vk::BufferUsageFlagBits::eVertexBuffer | vk::BufferUsageFlagBits::eTransferDst,
-            vk::MemoryPropertyFlagBits::eDeviceLocal);
-    pVertexBuffer_->copyToDeviceMemory(vkCommandPool_, device.getGraphicQueue(), vertices_);
+    // Bind mesh
+    pMesh_->draw(vkCommandBuffer);
 }
+
 } // namespace nae

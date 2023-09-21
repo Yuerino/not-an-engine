@@ -152,4 +152,15 @@ void Texture::setTexels(const std::string &texelPath) {
     stbi_image_free(pixels);
 }
 
+void Texture::bind(const vk::raii::CommandBuffer &vkCommandBuffer) const {
+    // Update descriptor sets to bind
+    auto &descriptorSetsToBind = App::get().getRenderer().getDescriptorSetsToBind();
+    // Update at set 1 for now TODO: make it configurable
+    if (descriptorSetsToBind.size() == 1) {
+        descriptorSetsToBind.emplace_back(*pDescriptorSets_->get()[0]);
+    } else if (descriptorSetsToBind.size() > 1) {
+        descriptorSetsToBind[1] = *pDescriptorSets_->get()[0];
+    }
+}
+
 } // namespace nae

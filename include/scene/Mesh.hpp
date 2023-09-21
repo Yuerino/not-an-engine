@@ -1,26 +1,44 @@
 #pragma once
 
-#include "Component.hpp"
-#include "Model.hpp"
-#include "Texture.hpp"
+#include <array>
+#include <memory>
+#include <string>
+#include <vector>
+
+#include <glm/glm.hpp>
+#include <vulkan/vulkan.hpp>
+#include <vulkan/vulkan_raii.hpp>
+
+#include "renderer/Buffer.hpp"
 
 namespace nae {
 
-class Mesh final : public Component {
+class Mesh {
 public:
-    explicit Mesh(std::unique_ptr<Model> pModel = nullptr, std::unique_ptr<Texture> pTexture = nullptr);
+    struct Vertex {
+        glm::vec3 position;
+        glm::vec3 color;
+        glm::vec3 normal;
+        glm::vec2 texCoord;
 
-    [[nodiscard]] EComponentType getType() const noexcept final { return EComponentType::Mesh; }
+        [[nodiscard]] static std::array<vk::VertexInputBindingDescription, 1> getBindingDescriptions();
+        [[nodiscard]] static std::vector<vk::VertexInputAttributeDescription> getAttributeDescriptions();
+    };
 
-    void setModel(std::unique_ptr<Model> pModel) { pModel_ = std::move(pModel); }
-    void setTexture(std::unique_ptr<Texture> pTexture) { pTexture_ = std::move(pTexture); }
+    explicit Mesh(const std::string &filePath);
 
-    [[nodiscard]] Model *getModel() const noexcept { return pModel_.get(); }
-    [[nodiscard]] Texture *getTexture() const noexcept { return pTexture_.get(); }
+    void draw(const vk::raii::CommandBuffer &vkCommandBuffer) const;
+
+    [[nodiscard]] const std::string &getFilePath() const noexcept { return filePath_; }
+    [[nodiscard]] const std::vector<Vertex> &getVertices() const noexcept { return vertices_; }
+    [[nodiscard]] const std::vector<uint32_t> &getIndices() const noexcept { return indices_; }
+    [[nodiscard]] Buffer &getVertexBuffer() const noexcept { return *pVertexBuffer_; }
 
 private:
-    std::unique_ptr<Model> pModel_{nullptr};
-    std::unique_ptr<Texture> pTexture_{nullptr};
+    std::string filePath_;
+    std::vector<Vertex> vertices_{};
+    std::vector<uint32_t> indices_{};
+    std::unique_ptr<Buffer> pVertexBuffer_{};
 };
 
 } // namespace nae

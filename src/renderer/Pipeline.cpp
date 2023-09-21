@@ -1,13 +1,14 @@
 #include "renderer/Pipeline.hpp"
 
-#include "scene/Model.hpp"
+#include "core/App.hpp"
+#include "renderer/Descriptor.hpp"
+#include "scene/Mesh.hpp"
 
 namespace nae {
 
-Pipeline::Pipeline(const Device &device,
-                   const Swapchain &swapChain,
-                   const std::string &vertexShaderPath,
-                   const std::string &fragmentShaderPath) {
+Pipeline::Pipeline(const std::string &vertexShaderPath, const std::string &fragmentShaderPath) {
+    const auto &device = App::get().getGraphicContext().getDevice();
+
     // Shader
     vertexShaderModule_ = ShaderModule{device, vertexShaderPath};
     fragmentShaderModule_ = ShaderModule{device, fragmentShaderPath};
@@ -24,8 +25,8 @@ Pipeline::Pipeline(const Device &device,
                                               nullptr}};
 
     // Vertex input empty for now because hard coded in shader
-    auto bindingDescriptions = Model::Vertex::getBindingDescriptions();
-    auto attributeDescriptions = Model::Vertex::getAttributeDescriptions();
+    auto bindingDescriptions = Mesh::Vertex::getBindingDescriptions();
+    auto attributeDescriptions = Mesh::Vertex::getAttributeDescriptions();
     vk::PipelineVertexInputStateCreateInfo pipelineVertexInputStateCreateInfo{vk::PipelineVertexInputStateCreateFlags{},
                                                                               bindingDescriptions,
                                                                               attributeDescriptions};
@@ -100,8 +101,9 @@ Pipeline::Pipeline(const Device &device,
                                                                             pipelineColorBlendAttachmentState,
                                                                             {{0.0f, 0.0f, 0.0f, 0.0f}}};
 
+    // TODO: shader reflect for ubo and push constant layout
     // Push constant range
-    vk::PushConstantRange pushConstantRange{vk::ShaderStageFlagBits::eVertex, 0, sizeof(PushConstantModel)};
+    vk::PushConstantRange pushConstantRange{vk::ShaderStageFlagBits::eVertex, 0, sizeof(ObjectPushConstant)};
 
     // Descriptor set layout
     DescriptorSetLayout uboDescriptorSetLayout{
@@ -122,10 +124,9 @@ Pipeline::Pipeline(const Device &device,
     // Pipeline cache
     vkPipelineCache_ = vk::raii::PipelineCache{device.get(), vk::PipelineCacheCreateInfo{}};
 
-    // Renderpass
-    renderPass_ = RenderPass{device, swapChain.getFormat().format, vk::Format::eD32Sfloat};
-
     // Pipeline
+    const auto &renderPass = App::get().getRenderer().getRenderPass();
+
     vk::GraphicsPipelineCreateInfo graphicsPipelineCreateInfo{vk::PipelineCreateFlags{},
                                                               pipelineShaderStageCreateInfos,
                                                               &pipelineVertexInputStateCreateInfo,
@@ -138,21 +139,9 @@ Pipeline::Pipeline(const Device &device,
                                                               &pipelineColorBlendStateCreateInfo,
                                                               &pipelineDynamicStateCreateInfo,
                                                               *vkPipelineLayout_,
-                                                              *renderPass_.get(),
+                                                              *renderPass.get(),
                                                               0};
     vkPipeline_ = vk::raii::Pipeline{device.get(), vkPipelineCache_, graphicsPipelineCreateInfo};
-}
-
-const vk::raii::Pipeline &Pipeline::get() const noexcept {
-    return vkPipeline_;
-}
-
-const RenderPass &Pipeline::getRenderPass() const noexcept {
-    return renderPass_;
-}
-
-const vk::raii::PipelineLayout &Pipeline::getLayout() const noexcept {
-    return vkPipelineLayout_;
 }
 
 } // namespace nae

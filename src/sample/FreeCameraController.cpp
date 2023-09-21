@@ -1,8 +1,8 @@
-#include "scene/FreeCameraController.hpp"
+#include "sample/FreeCameraController.hpp"
 
-#include <GLFW/glfw3.h>
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
+#include "GLFW/glfw3.h"
+#include "glm/glm.hpp"
+#include "glm/gtc/matrix_transform.hpp"
 
 #include "core/App.hpp"
 #include "scene/Transform.hpp"

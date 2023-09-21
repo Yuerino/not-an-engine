@@ -1,13 +1,13 @@
 #version 450
 
-layout (binding = 0) uniform MvpMatrices {
+layout (set = 0, binding = 0) uniform UniformBuffer {
     mat4 view;
     mat4 proj;
-} mvpMatrices;
+} cameraResources;
 
-layout (push_constant) uniform PushConstants {
-    mat4 model;
-} pushConstants;
+layout (push_constant) uniform PushConstant {
+    mat4 transform;
+} objectResources;
 
 layout (location = 0) in vec3 inPosition;
 layout (location = 1) in vec3 inColor;
@@ -20,7 +20,8 @@ layout (location = 2) out vec3 fragPosition;
 layout (location = 3) out vec2 fragTexCoord;
 
 void main() {
-    gl_Position = mvpMatrices.proj * mvpMatrices.view * pushConstants.model * vec4(inPosition, 1.0);
+    gl_Position = cameraResources.proj * cameraResources.view * objectResources.transform * vec4(inPosition, 1.0);
+
     fragColor = inColor;
 
     // uniform scaling
@@ -29,6 +30,7 @@ void main() {
     // non-uniform scaling
     //     fragNormal = mat3(transpose(inverse(mvpMatrices.model))) * inNormal;
 
-    fragPosition = vec3(pushConstants.model * vec4(inPosition, 1.0));
+    fragPosition = vec3(objectResources.transform * vec4(inPosition, 1.0));
+
     fragTexCoord = inTexCoord;
 }

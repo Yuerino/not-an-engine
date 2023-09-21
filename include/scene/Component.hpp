@@ -4,7 +4,7 @@
 
 namespace nae {
 
-enum class EComponentType { Transform, Mesh, Behaviour };
+enum class EComponentType { Transform, Model, Behaviour };
 
 class Entity;
 

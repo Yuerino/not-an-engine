@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Camera.hpp"
+#include "scene/Camera.hpp"
 
 namespace nae {
 
