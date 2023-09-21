@@ -56,6 +56,7 @@ target_compile_definitions(not-an-engine
 
 target_include_directories(not-an-engine
     PRIVATE
+    ${GLM_INCLUDE_DIR}
     ${PROJECT_SOURCE_DIR}/dependency/tinyobjloader
     ${PROJECT_SOURCE_DIR}/dependency/stb
     PUBLIC
@@ -64,6 +65,5 @@ target_include_directories(not-an-engine
 target_link_libraries(not-an-engine
     PRIVATE
     glfw
-    glm
     PUBLIC
     Vulkan::Vulkan)
