@@ -25,8 +25,7 @@ endif ()
 
 find_package(glm CONFIG QUIET)
 if (NOT glm_FOUND)
-    add_subdirectory(${PROJECT_SOURCE_DIR}/dependency/glm glm)
-    set_target_properties(glm PROPERTIES FOLDER "dependency")
+    set(GLM_INCLUDE_DIR "${PROJECT_SOURCE_DIR}/dependency/glm")
 endif ()
 
 add_subdirectory(src)

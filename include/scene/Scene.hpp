@@ -15,7 +15,7 @@ public:
     virtual void onUpdate(Time timestep) = 0;
 
     [[nodiscard]] EntityManager &getEntityManager() noexcept { return entityManager_; }
-    [[nodiscard]] Camera &getCamera() const noexcept { return *pCamera_; }
+    [[nodiscard]] Camera *getCamera() const noexcept { return pCamera_.get(); }
 
 private:
     std::unique_ptr<Camera> pCamera_;

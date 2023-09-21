@@ -47,7 +47,7 @@ void BasicScene::onUpdate(Time timestep) {
         pBehaviour->onUpdate(timestep);
     });
 
-    getCamera().onUpdate(timestep);
+    getCamera()->onUpdate(timestep);
 }
 
 } // namespace nae

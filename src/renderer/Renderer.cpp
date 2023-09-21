@@ -173,8 +173,8 @@ void Renderer::renderModels() {
     auto &scene = App::get().getActiveScene();
 
     // Bind camera
-    auto &camera = scene.getCamera();
-    camera.bind((*pVkCommandBuffers_)[currentCommandBufferIdx_]);
+    auto pCamera = scene.getCamera();
+    pCamera->bind((*pVkCommandBuffers_)[currentCommandBufferIdx_]);
 
     auto models = scene.getEntityManager().queryComponentOfType(EComponentType::Model);
     std::for_each(models.begin(), models.end(), [&](auto *pComponent) -> void {
